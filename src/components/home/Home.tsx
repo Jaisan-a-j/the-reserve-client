@@ -2,7 +2,7 @@ import home from "../../assets/home.jpeg";
 
 const Main = () => {
   return (
-    <section className="w-full px-6 pt-15 pb-16 bg-[#f8f7fb] overflow-hidden">
+    <section className="w-full px-6 pt-36 pb-16 bg-[#f8f7fb] overflow-hidden">
       <div className="flex justify-center">
         <div className="border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2">
           <span>Serving Food Lovers Since 2016</span>
