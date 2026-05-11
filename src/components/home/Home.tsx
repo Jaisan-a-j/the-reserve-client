@@ -1,5 +1,42 @@
-const Home = () => {
-  return <div>Home</div>;
+import home from "../../assets/home.jpeg";
+
+const Main = () => {
+  return (
+    <section className="w-full px-6 pt-15 pb-16 bg-[#f8f7fb] overflow-hidden">
+      <div className="flex justify-center">
+        <div className="border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2">
+          <span>Serving Food Lovers Since 2016</span>
+          <span>❤️</span>
+        </div>
+      </div>
+
+      <div className="mt-8 text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-[#2b2d42] leading-tight">
+          Savor Every Bite. Savor Every Moment.
+        </h1>
+
+        <p className="mt-6 text-gray-600 text-lg leading-8">
+          Welcome to a dining experience where flavor, freshness, and
+          hospitality come together. Whether it's your first visit or your
+          hundredth, every plate is made to impress.
+        </p>
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition-all duration-300">
+          Experience the Flavor →
+        </button>
+      </div>
+
+      <div className="mt-16">
+        <img
+          src={home}
+          alt="Restaurant Food"
+          className="w-full h-[420px] object-cover rounded-[2rem]"
+        />
+      </div>
+    </section>
+  );
 };
 
-export default Home;
+export default Main;
