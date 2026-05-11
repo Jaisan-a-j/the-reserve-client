@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
+import type { LinkTypes } from "../../types";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +45,7 @@ const Header = () => {
         }`}
       >
         <nav className="flex flex-col px-6 gap-6">
-          {navLinks.map((link) => (
+          {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
               href={`#${link.name.toLowerCase()}`}
