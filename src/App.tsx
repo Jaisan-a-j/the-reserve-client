@@ -1,8 +1,14 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import MainPage from "./pages/MainPage";
+import Header from "./components/common/Header";
 function App() {
   return (
-    <>
-      <h1>The Reserve</h1>
-    </>
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+      </Routes>
+    </Router>
   );
 }
 
