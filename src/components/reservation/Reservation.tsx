@@ -1,5 +1,8 @@
-import { User, Phone, CalendarDays, Clock3, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import FormInput from "./FormInput";
+import { formFields } from "../../constants/forms";
+import ContactCard from "./ContactCard";
+import type { FormInputProps } from "../../types";
 
 const Reservation = () => {
   return (
@@ -21,26 +24,19 @@ const Reservation = () => {
         </h3>
 
         <form className="mt-8 flex flex-col gap-6">
-          <FormInput
-            label="Your Name"
-            type="text"
-            placeholder="Enter your name..."
-            icon={User}
-          />
-
-          <FormInput
-            label="Phone Number"
-            type="text"
-            placeholder="+1 (212) 555-1234"
-            icon={Phone}
-          />
-          <FormInput label="Enter The Date" type="date" icon={CalendarDays} />
-          <FormInput label="Enter Time" type="time" icon={Clock3} />
+          {formFields.map((field: FormInputProps) => (
+            <FormInput key={field.label} {...field} />
+          ))}
           <div>
-            <label className="block text-sm text-[#2b2d42] mb-2">Message</label>
-
+            <label
+              htmlFor="message"
+              className="block text-sm text-[#2b2d42] mb-2"
+            >
+              Message
+            </label>
             <div className="flex items-start border border-gray-300 rounded-xl px-4 py-4">
               <textarea
+                id="message"
                 rows={4}
                 placeholder="Enter your message"
                 className="w-full outline-none text-sm text-gray-700 resize-none placeholder:text-gray-400"
@@ -49,27 +45,20 @@ const Reservation = () => {
             </div>
           </div>
 
-          <button className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold text-base py-3 rounded-xl shadow-md hover:scale-[1.02] transition-all duration-300">
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold text-base py-3 rounded-xl shadow-md hover:scale-[1.02] transition-all duration-300"
+          >
             Book a Reservation
           </button>
         </form>
 
-        <div className="mt-10 flex flex-col gap-5">
-          <div className="border border-gray-200 rounded-2xl p-6 text-center">
-            <h4 className="text-xl font-semibold text-[#2b2d42]">
-              Email/Phone
-            </h4>
-
+        <address className="mt-10 flex flex-col gap-5 not-italic">
+          <ContactCard title="Email/Phone">
             <p className="mt-5 text-gray-600 text-base">johndoe@gmail.com</p>
-
             <p className="mt-2 text-gray-600 text-base">+148 589 2001 2466</p>
-          </div>
-
-          <div className="border border-gray-200 rounded-2xl p-6 text-center">
-            <h4 className="text-xl font-semibold text-[#2b2d42]">
-              Our Location
-            </h4>
-
+          </ContactCard>
+          <ContactCard title="Our Location">
             <p className="mt-5 text-gray-600 text-base leading-8">
               Office 149,
               <br />
@@ -79,8 +68,8 @@ const Reservation = () => {
               <br />
               CA 91905, USA
             </p>
-          </div>
-        </div>
+          </ContactCard>
+        </address>
 
         <div className="mt-8 text-center text-base text-[#2b2d42]">
           Opening Hours{" "}
