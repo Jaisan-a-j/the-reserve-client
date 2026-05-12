@@ -1,5 +1,6 @@
 import { categoryData } from "../../constants/food";
 import type { CategoryTypes } from "../../types";
+import Button from "../common/Button";
 
 const Categories = () => {
   return (
@@ -36,10 +37,9 @@ const Categories = () => {
               <p className="text-gray-500 text-sm leading-relaxed mb-6">
                 {category.description}
               </p>
-
-              <button className=" bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:scale-105 transition-all duration-300">
-                Read More →
-              </button>
+              <div>
+                <Button content="Read More →" />
+              </div>
             </div>
           </div>
         ))}

@@ -1,15 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
-import Header from "./components/common/Header";
-import Footer from "./components/common/Footer";
+import MainLayout from "./layouts/MainLayout";
+import Login from "./pages/Login";
 function App() {
   return (
     <Router>
-      <Header />
       <Routes>
-        <Route path="/" element={<MainPage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<MainPage />} />
+        </Route>
+        <Route path="/login" element={<Login />} />
       </Routes>
-      <Footer />
     </Router>
   );
 }

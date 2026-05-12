@@ -3,6 +3,7 @@ import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
 import ContactCard from "./ContactCard";
 import type { FormInputProps } from "../../types";
+import Button from "../common/Button";
 
 const Reservation = () => {
   return (
@@ -44,13 +45,7 @@ const Reservation = () => {
               <MessageCircle className="text-gray-500 mt-1" size={20} />
             </div>
           </div>
-
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold text-base py-3 rounded-xl shadow-md hover:scale-[1.02] transition-all duration-300"
-          >
-            Book a Reservation
-          </button>
+          <Button content="Book a Reservation" />
         </form>
 
         <address className="mt-10 flex flex-col gap-5 not-italic">

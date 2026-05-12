@@ -1,4 +1,5 @@
 import home from "../../assets/home.jpeg";
+import Button from "../common/Button";
 
 const Main = () => {
   return (
@@ -23,9 +24,7 @@ const Main = () => {
       </div>
 
       <div className="flex justify-center mt-8">
-        <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg hover:scale-105 transition-all duration-300">
-          Experience the Flavor →
-        </button>
+        <Button content="Experience the Flavor →" />
       </div>
 
       <div className="mt-16">

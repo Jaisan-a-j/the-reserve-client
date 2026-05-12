@@ -18,7 +18,7 @@ const Footer = () => {
       <nav className="w-full max-w-xs mb-5">
         <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-gray-600 text-sm font-medium">
           {navLinks.map((links: LinkTypes) => (
-            <li>
+            <li key={links.name}>
               <a href="#" className="hover:text-black transition-colors">
                 {links.name}
               </a>
