@@ -9,7 +9,7 @@ const Header = () => {
 
   return (
     <nav className="relative">
-      <header className="fixed top-0 left-0 w-full h-[64px] z-[70] flex items-center justify-between px-2 py-3 bg-white border-b border-gray-100 shadow-sm">
+      <header className="fixed top-0 left-0 w-full h-16 z-[70] flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
         <div className="flex items-center">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden">
             <img src={logo} alt="Logo" className="w-7 h-7 object-contain" />
@@ -19,6 +19,20 @@ const Header = () => {
           </span>
         </div>
 
+        <div className="hidden lg:flex items-center gap-8">
+          {navLinks.map((link: LinkTypes) => (
+            <a
+              key={link.name}
+              href={`${link.name.toLowerCase()}`}
+              className={`font-medium transition-colors hover:text-[#7c5dfa] ${
+                link.active ? "text-[#7c5dfa]" : "text-gray-700"
+              }`}
+            >
+              {link.name}
+            </a>
+          ))}
+        </div>
+
         <div className="flex items-center gap-3">
           <button className="bg-[#7c5dfa] text-white px-3 py-2 rounded-lg font-medium text-sm hover:bg-[#6a4ee0] transition-colors shadow-md">
             Book A Table
@@ -26,7 +40,7 @@ const Header = () => {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="lg:hidden p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             {isOpen ? (
               <X className="w-5 h-5 text-gray-600" />
@@ -38,10 +52,8 @@ const Header = () => {
       </header>
 
       <div
-        className={`fixed left-0 w-full bg-white z-[60] border-b border-gray-100 transition-all ease-in-out shadow-xl overflow-hidden ${
-          isOpen
-            ? "top-[64px] opacity-100 h-auto py-8"
-            : "top-[-100%] opacity-0 h-0"
+        className={`lg:hidden fixed left-0 w-full bg-white z-[60] border-b border-gray-100 transition-all duration-300 ease-in-out shadow-xl overflow-hidden ${
+          isOpen ? "top-16 opacity-100 py-8" : "top-[-100%] opacity-0 py-0"
         }`}
       >
         <nav className="flex flex-col px-6 gap-6">
@@ -62,7 +74,7 @@ const Header = () => {
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-[50]"
+          className="lg:hidden fixed inset-0 bg-black/20 z-[50]"
           onClick={() => setIsOpen(false)}
         />
       )}
