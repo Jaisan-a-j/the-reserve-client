@@ -48,7 +48,7 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={`#${link.name.toLowerCase()}`}
+              href={`${link.name.toLowerCase()}`}
               onClick={() => setIsOpen(false)}
               className={`text-lg font-medium transition-colors ${
                 link.active ? "text-[#7c5dfa]" : "text-gray-700"
