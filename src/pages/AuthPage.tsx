@@ -1,13 +1,8 @@
-import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
-import FormButton from "../components/common/Button";
-import FormInput from "../components/reservation/FormInput";
+import AuthForm from "../components/auth/AuthForm";
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 md:p-6">
       <div className="bg-white w-full max-w-[1000px] min-h-[600px] md:rounded-3xl shadow-2xl flex overflow-hidden">
@@ -82,50 +77,7 @@ const Login = () => {
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            <FormInput
-              label="Email"
-              type="email"
-              icon={Mail}
-              placeholder="Enter your email"
-            />
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Password
-                </label>
-                <a
-                  href="#"
-                  className="text-sm font-semibold text-[#7c5dfa] hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-[#7c5dfa] focus:bg-white outline-none transition-all"
-                />
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <div className="grid">
-              <FormButton content="Login" />
-            </div>
-          </form>
+          <AuthForm />
 
           <p className="text-center mt-8 text-gray-600">
             Don't have an account?{" "}
