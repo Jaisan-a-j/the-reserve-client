@@ -17,6 +17,9 @@ export interface FormInputProps {
   type: string;
   placeholder?: string;
   icon: LucideIcon;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 export interface ButtonTypes {
   path?: string;
