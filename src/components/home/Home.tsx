@@ -3,7 +3,10 @@ import Button from "../common/Button";
 
 const Main = () => {
   return (
-    <section className="w-full px-6 pt-36 pb-16 bg-[#f8f7fb] overflow-hidden">
+    <section
+      id="home"
+      className="w-full px-6 pt-36 pb-16 bg-[#f8f7fb] overflow-hidden scroll-mt-20"
+    >
       <div className="flex flex-col items-center justify-center sm:mt-[55px]">
         <div className="flex justify-center">
           <div className="border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2">
@@ -24,9 +27,7 @@ const Main = () => {
           </p>
         </div>
 
-        <div className="flex justify-center mt-8">
-          <Button content="Experience the Flavor →" />
-        </div>
+        <Button content="Experience the Flavor →" className="mt-8" />
       </div>
 
       <div className="mt-16 xl:mt-28">

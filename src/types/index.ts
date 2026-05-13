@@ -18,3 +18,7 @@ export interface FormInputProps {
   placeholder?: string;
   icon: LucideIcon;
 }
+export interface ButtonTypes {
+  content: string;
+  className?: string;
+}

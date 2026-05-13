@@ -7,7 +7,10 @@ import Button from "../common/Button";
 
 const Reservation = () => {
   return (
-    <section className="w-full px-6 py-14 md:py-24 bg-[#f8f7fb]">
+    <section
+      id="reservation"
+      className="w-full px-6 py-14 md:py-24 bg-[#f8f7fb]"
+    >
       <div className="text-center max-w-2xl mx-auto mb-12">
         <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-[#2b2d42] leading-tight">
           Get in Touch to Reserve Your Table

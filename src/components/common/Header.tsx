@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
+import SecondaryButton from "./SecondaryButton";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +24,7 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={`${link.name.toLowerCase()}`}
+              href={`#${link.name.replace(/\s+/g, "").toLowerCase()}`}
               className={`font-medium transition-colors hover:text-[#7c5dfa] ${
                 link.active ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
@@ -34,9 +35,8 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="bg-[#7c5dfa] text-white px-3 py-2 rounded-lg font-medium text-sm hover:bg-[#6a4ee0] transition-colors shadow-md">
-            Book A Table
-          </button>
+          <SecondaryButton content="Book A Table" />
+          <SecondaryButton content="Login" className="hidden lg:block" />
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -60,7 +60,7 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={`${link.name.toLowerCase()}`}
+              href={`#${link.name.replace(/\s+/g, "").toLowerCase()}`}
               onClick={() => setIsOpen(false)}
               className={`text-lg font-medium transition-colors ${
                 link.active ? "text-[#7c5dfa]" : "text-gray-700"
@@ -69,6 +69,8 @@ const Header = () => {
               {link.name}
             </a>
           ))}
+
+          <SecondaryButton content="Login" className="lg:hidden self-start" />
         </nav>
       </div>
 

@@ -4,7 +4,7 @@ import Button from "../common/Button";
 
 const Categories = () => {
   return (
-    <section className="px-6 py-12 md:py-20 bg-white">
+    <section id="buyonline" className="px-6 py-12 md:py-20 bg-white">
       <div className="text-center mb-12 md:mb-16 max-w-2xl mx-auto">
         <h2 className="text-2xl md:text-4xl font-bold text-[#1e293b] mb-4">
           Crafting Moments, Serving You
@@ -37,9 +37,7 @@ const Categories = () => {
               <p className="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">
                 {category.description}
               </p>
-              <div className="mt-auto">
-                <Button content="Read More →" />
-              </div>
+              <Button content="Read More →" className="self-start" />
             </div>
           </div>
         ))}
