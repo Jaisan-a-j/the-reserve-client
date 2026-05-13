@@ -35,8 +35,12 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <SecondaryButton content="Book A Table" />
-          <SecondaryButton content="Login" className="hidden lg:block" />
+          <SecondaryButton path="#reservation" content="Book A Table" />
+          <SecondaryButton
+            path="login"
+            content="Login"
+            className="hidden lg:block"
+          />
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -70,7 +74,11 @@ const Header = () => {
             </a>
           ))}
 
-          <SecondaryButton content="Login" className="lg:hidden self-start" />
+          <SecondaryButton
+            path="login"
+            content="Login"
+            className="lg:hidden self-start"
+          />
         </nav>
       </div>
 

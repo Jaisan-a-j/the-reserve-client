@@ -19,6 +19,7 @@ export interface FormInputProps {
   icon: LucideIcon;
 }
 export interface ButtonTypes {
+  path?: string;
   content: string;
   className?: string;
 }
