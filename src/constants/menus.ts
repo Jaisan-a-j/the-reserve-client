@@ -6,5 +6,4 @@ export const navLinks: LinkTypes[] = [
   { name: "Buy Online", active: false },
   { name: "Team", active: false },
   { name: "FAQS", active: false },
-  { name: "Login", active: false },
 ];
