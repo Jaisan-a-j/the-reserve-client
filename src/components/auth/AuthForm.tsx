@@ -4,18 +4,20 @@ import Button from "../common/Button";
 import FormInput from "../reservation/FormInput";
 import PasswordField from "./PasswordField";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 import { Mail, PersonStandingIcon } from "lucide-react";
 
 const AuthForm = () => {
-  const userExist = true;
+  const [userExist, setUserExist] = useState(true);
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
   });
-  const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState("");
+  const { login, register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -28,14 +30,22 @@ const AuthForm = () => {
     e.preventDefault();
 
     try {
+      setErrorMessage("");
       if (userExist) {
         await login(formData.email, formData.password);
         navigate("/");
       } else {
-        console.log("REGISTER");
+        await register(formData.fullName, formData.email, formData.password);
+        navigate("/");
       }
     } catch (error) {
-      console.error(error);
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(
+          error.response?.data?.message || "Something went wrong",
+        );
+      } else {
+        setErrorMessage("Something went wrong");
+      }
     }
   };
 
@@ -71,6 +81,9 @@ const AuthForm = () => {
           onChange={handleChange}
           name="password"
         />
+        {errorMessage && (
+          <p className="text-red-500 text-sm font-medium">{errorMessage}</p>
+        )}
 
         <div className="grid">
           <Button content={userExist ? "Login" : "Register"} />
@@ -79,7 +92,10 @@ const AuthForm = () => {
 
       <p className="text-center mt-8 text-gray-600">
         {!userExist ? "Already have an account?" : "Don't have an account?"}{" "}
-        <a className="text-[#7c5dfa] font-bold hover:underline cursor-pointer">
+        <a
+          className="text-[#7c5dfa] font-bold hover:underline cursor-pointer"
+          onClick={() => setUserExist(!userExist)}
+        >
           {!userExist ? "Login" : " Register"}
         </a>
       </p>

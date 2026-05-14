@@ -1,10 +1,12 @@
 import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
+import BackToHomeButton from "../components/common/BackToHomeButton";
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 md:p-6">
       <div className="bg-white w-full max-w-[1000px] min-h-[600px] md:rounded-3xl shadow-2xl flex overflow-hidden">
         <div className="hidden md:flex md:w-1/2 relative bg-[#7c5dfa]/5 items-center justify-center p-12">
+          <BackToHomeButton />
           <div className="relative z-10 text-center">
             <img
               src={logo}
@@ -30,6 +32,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         <div className="w-full md:w-1/2 flex flex-col p-8 md:p-12 justify-center">
+          <BackToHomeButton className="md:hidden" />
           <div className="md:hidden text-center mb-8">
             <img
               src={logo}
