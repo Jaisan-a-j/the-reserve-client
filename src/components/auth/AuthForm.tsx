@@ -1,21 +1,21 @@
 import { useState } from "react";
-
+import { useAuth } from "../../hooks/useAuth";
 import Button from "../common/Button";
 import FormInput from "../reservation/FormInput";
 import PasswordField from "./PasswordField";
+import { useNavigate } from "react-router-dom";
 
 import { Mail, PersonStandingIcon } from "lucide-react";
 
-import { loginUser } from "../../services/authService";
-
 const AuthForm = () => {
   const userExist = true;
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
   });
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,19 +29,13 @@ const AuthForm = () => {
 
     try {
       if (userExist) {
-        const data = await loginUser({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        console.log("LOGIN SUCCESS", data);
-        alert("login success");
+        await login(formData.email, formData.password);
+        navigate("/");
       } else {
         console.log("REGISTER");
       }
     } catch (error) {
       console.error(error);
-      alert("login not success");
     }
   };
 

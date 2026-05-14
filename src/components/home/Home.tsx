@@ -1,7 +1,9 @@
 import home from "../../assets/home.jpeg";
 import Button from "../common/Button";
+import { useAuth } from "../../hooks/useAuth";
 
 const Main = () => {
+  const { user } = useAuth();
   return (
     <section
       id="home"
@@ -21,9 +23,10 @@ const Main = () => {
           </h1>
 
           <p className="mt-6 text-gray-600 text-lg leading-8">
-            Welcome to a dining experience where flavor, freshness, and
-            hospitality come together. Whether it's your first visit or your
-            hundredth, every plate is made to impress.
+            Welcome <span className="text-3xl font-bold">{user?.fullName}</span>{" "}
+            to a dining experience where flavor, freshness, and hospitality come
+            together. Whether it's your first visit or your hundredth, every
+            plate is made to impress.
           </p>
         </div>
 

@@ -14,18 +14,20 @@ export const registerUser = async (data: {
 };
 
 export const loginUser = async (data: { email: string; password: string }) => {
-  console.log("data", data);
-
   const response = await API.post("/login", data);
   return response.data;
 };
 
 export const getCurrentUser = async (token: string) => {
-  const response = await API.get("/user", {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await API.post(
+    "/user",
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   return response.data;
 };

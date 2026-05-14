@@ -25,4 +25,5 @@ export interface ButtonTypes {
   path?: string;
   content: string;
   className?: string;
+  onClick?: () => void;
 }
