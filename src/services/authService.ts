@@ -1,3 +1,4 @@
+import type { CredentialResponse } from "@react-oauth/google";
 import axios from "axios";
 
 const API = axios.create({
@@ -28,6 +29,16 @@ export const getCurrentUser = async (token: string) => {
       },
     },
   );
+
+  return response.data;
+};
+
+export const loginGoogleUser = async (
+  credentialResponse: CredentialResponse,
+) => {
+  const response = await API.post("/google", {
+    credential: credentialResponse.credential,
+  });
 
   return response.data;
 };

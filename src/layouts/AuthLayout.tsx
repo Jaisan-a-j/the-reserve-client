@@ -1,7 +1,10 @@
 import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
 import BackToHomeButton from "../components/common/BackToHomeButton";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../hooks/useAuth";
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  const { loginGoogle } = useAuth();
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 md:p-6">
       <div className="bg-white w-full max-w-[1000px] min-h-[600px] md:rounded-3xl shadow-2xl flex overflow-hidden">
@@ -51,23 +54,11 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
             <p className="text-gray-500">Login to continue your experience</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <button className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm text-gray-700">
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                className="w-5 h-5"
-                alt="Google"
-              />
-              Google
-            </button>
-            <button className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm text-gray-700">
-              <img
-                src="https://www.svgrepo.com/show/475647/facebook-color.svg"
-                className="w-5 h-5"
-                alt="Facebook"
-              />
-              Facebook
-            </button>
+          <div className="mb-8 self-center">
+            <GoogleLogin
+              onSuccess={loginGoogle}
+              onError={() => console.log("Google Login Failed")}
+            />
           </div>
 
           <div className="relative flex items-center mb-8">

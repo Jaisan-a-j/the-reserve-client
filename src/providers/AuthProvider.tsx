@@ -6,7 +6,9 @@ import {
   getCurrentUser,
   loginUser,
   registerUser,
+  loginGoogleUser,
 } from "../services/authService";
+import type { CredentialResponse } from "@react-oauth/google";
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserType | null>(null);
@@ -44,6 +46,15 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(data.user);
   };
 
+  const loginGoogle = async (credentialResponse: CredentialResponse) => {
+    const data = await loginGoogleUser(credentialResponse);
+
+    localStorage.setItem("token", data.token);
+
+    setToken(data.token);
+    setUser(data.user);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
 
@@ -61,8 +72,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
       } catch (error) {
         console.error(error);
-
-        logout();
       }
     };
 
@@ -75,6 +84,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         token,
         login,
+        loginGoogle,
         register,
         logout,
       }}

@@ -1,3 +1,4 @@
+import type { CredentialResponse } from "@react-oauth/google";
 import { createContext } from "react";
 
 export interface UserType {
@@ -11,6 +12,8 @@ export interface AuthContextType {
   token: string | null;
 
   login: (email: string, password: string) => Promise<void>;
+
+  loginGoogle: (credentialResponse: CredentialResponse) => Promise<void>;
 
   register: (
     fullName: string,
