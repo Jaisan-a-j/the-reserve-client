@@ -1,10 +1,18 @@
 import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
 import BackToHomeButton from "../components/common/BackToHomeButton";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   const { loginGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  const handleloginGoogle = async (credentialResponse: CredentialResponse) => {
+    await loginGoogle(credentialResponse);
+    navigate("/");
+  };
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 md:p-6">
       <div className="bg-white w-full max-w-[1000px] min-h-[600px] md:rounded-3xl shadow-2xl flex overflow-hidden">
@@ -56,7 +64,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
           <div className="mb-8 self-center">
             <GoogleLogin
-              onSuccess={loginGoogle}
+              onSuccess={handleloginGoogle}
               onError={() => console.log("Google Login Failed")}
             />
           </div>
