@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { useAuth } from "../../hooks/useAuth";
 import Button from "../common/Button";
 import FormInput from "../reservation/FormInput";
 import PasswordField from "./PasswordField";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Mail, PersonStandingIcon } from "lucide-react";
+import { useAppDispatch } from "../../hooks/reduxHooks";
+
+import {
+  loginUserThunk,
+  registerUserThunk,
+} from "../../features/auth/authThunk";
 
 const AuthForm = () => {
   const [userExist, setUserExist] = useState(true);
+  const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -16,8 +22,8 @@ const AuthForm = () => {
     email: "",
     password: "",
   });
+
   const [errorMessage, setErrorMessage] = useState("");
-  const { login, register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,13 +35,37 @@ const AuthForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setErrorMessage("");
+
+    if (!formData.email || !formData.password) {
+      setErrorMessage("Email and password are required");
+      return;
+    }
+
+    if (!userExist && !formData.fullName) {
+      setErrorMessage("Full name is required");
+      return;
+    }
+
     try {
-      setErrorMessage("");
       if (userExist) {
-        await login(formData.email, formData.password);
+        await dispatch(
+          loginUserThunk({
+            email: formData.email,
+            password: formData.password,
+          }),
+        ).unwrap();
+
         navigate("/");
       } else {
-        await register(formData.fullName, formData.email, formData.password);
+        await dispatch(
+          registerUserThunk({
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+          }),
+        ).unwrap();
+
         navigate("/");
       }
     } catch (error) {

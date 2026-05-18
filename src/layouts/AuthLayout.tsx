@@ -2,15 +2,16 @@ import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
 import BackToHomeButton from "../components/common/BackToHomeButton";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../hooks/reduxHooks";
+import { loginGoogleThunk } from "../features/auth/authThunk";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  const { loginGoogle } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleloginGoogle = async (credentialResponse: CredentialResponse) => {
-    await loginGoogle(credentialResponse);
+    await dispatch(loginGoogleThunk(credentialResponse));
     navigate("/");
   };
   return (
