@@ -4,9 +4,21 @@ import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const authAction = () => {
+    if (user) {
+      logout();
+    } else {
+      navigate("/auth");
+    }
+  };
 
   return (
     <nav className="relative">
@@ -37,9 +49,9 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <SecondaryButton path="#reservation" content="Book A Table" />
           <SecondaryButton
-            path="login"
-            content="Login"
-            className="hidden lg:block"
+            onClick={authAction}
+            content={user ? "Logout" : "Login"}
+            className="hidden lg:block cursor-pointer"
           />
 
           <button
@@ -75,8 +87,8 @@ const Header = () => {
           ))}
 
           <SecondaryButton
-            path="login"
-            content="Login"
+            onClick={authAction}
+            content={user ? "Logout" : "Login"}
             className="lg:hidden self-start"
           />
         </nav>

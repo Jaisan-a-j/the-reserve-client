@@ -1,9 +1,13 @@
 import type { FormInputProps } from "../../types";
+
 const FormInput = ({
   label,
   type,
   placeholder,
   icon: Icon,
+  value,
+  onChange,
+  name,
 }: FormInputProps) => {
   return (
     <div>
@@ -12,6 +16,9 @@ const FormInput = ({
       <div className="flex items-center border border-gray-300 rounded-xl px-4 h-[52px]">
         <input
           type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
           placeholder={placeholder}
           className="w-full outline-none text-sm text-gray-700 placeholder:text-gray-400"
         />

@@ -1,10 +1,23 @@
 import logo from "../assets/icon.jpeg";
 import loginHero from "../assets/beverages.jpeg";
+import BackToHomeButton from "../components/common/BackToHomeButton";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+  const { loginGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  const handleloginGoogle = async (credentialResponse: CredentialResponse) => {
+    await loginGoogle(credentialResponse);
+    navigate("/");
+  };
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 md:p-6">
       <div className="bg-white w-full max-w-[1000px] min-h-[600px] md:rounded-3xl shadow-2xl flex overflow-hidden">
         <div className="hidden md:flex md:w-1/2 relative bg-[#7c5dfa]/5 items-center justify-center p-12">
+          <BackToHomeButton />
           <div className="relative z-10 text-center">
             <img
               src={logo}
@@ -30,6 +43,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         <div className="w-full md:w-1/2 flex flex-col p-8 md:p-12 justify-center">
+          <BackToHomeButton className="md:hidden" />
           <div className="md:hidden text-center mb-8">
             <img
               src={logo}
@@ -48,23 +62,11 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
             <p className="text-gray-500">Login to continue your experience</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <button className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm text-gray-700">
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                className="w-5 h-5"
-                alt="Google"
-              />
-              Google
-            </button>
-            <button className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm text-gray-700">
-              <img
-                src="https://www.svgrepo.com/show/475647/facebook-color.svg"
-                className="w-5 h-5"
-                alt="Facebook"
-              />
-              Facebook
-            </button>
+          <div className="mb-8 self-center">
+            <GoogleLogin
+              onSuccess={handleloginGoogle}
+              onError={() => console.log("Google Login Failed")}
+            />
           </div>
 
           <div className="relative flex items-center mb-8">
