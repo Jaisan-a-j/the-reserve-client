@@ -4,17 +4,18 @@ import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
-import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-
+import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
+import { logout } from "../../features/auth/authSlice";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const authAction = () => {
     if (user) {
-      logout();
+      dispatch(logout());
     } else {
       navigate("/auth");
     }

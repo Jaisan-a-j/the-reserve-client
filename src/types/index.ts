@@ -27,3 +27,16 @@ export interface ButtonTypes {
   className?: string;
   onClick?: () => void;
 }
+
+export interface UserType {
+  _id: string;
+  fullName: string;
+  email: string;
+}
+
+export interface AuthState {
+  user: UserType | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+}

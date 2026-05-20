@@ -1,9 +1,10 @@
 import home from "../../assets/home.jpeg";
 import Button from "../common/Button";
-import { useAuth } from "../../hooks/useAuth";
+import { useAppSelector } from "../../hooks/reduxHooks";
 
 const Main = () => {
-  const { user } = useAuth();
+  const user = useAppSelector((state) => state.auth.user);
+
   return (
     <section
       id="home"
