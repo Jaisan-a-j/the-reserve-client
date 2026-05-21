@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ChangeEvent } from "react";
 
 export interface LinkTypes {
   name: string;
@@ -12,14 +13,17 @@ export interface CategoryTypes {
   image: string;
 }
 
-export interface FormInputProps {
+export interface FormFieldMeta {
   label: string;
   type: string;
   placeholder?: string;
   icon: LucideIcon;
   name: string;
+}
+
+export interface FormInputProps extends FormFieldMeta {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 export interface ButtonTypes {
   path?: string;

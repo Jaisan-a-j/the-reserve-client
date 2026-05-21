@@ -1,11 +1,24 @@
 import { MessageCircle } from "lucide-react";
+import { useState, type ChangeEvent } from "react";
 import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
 import ContactCard from "./ContactCard";
-import type { FormInputProps } from "../../types";
+import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
 
 const Reservation = () => {
+  const [formData, setFormData] = useState<Record<string, string>>({
+    fullName: "",
+    phone: "",
+    date: "",
+    time: "",
+  });
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
     <section
       id="reservation"
@@ -31,8 +44,13 @@ const Reservation = () => {
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
             onSubmit={(e) => e.preventDefault()}
           >
-            {formFields.map((field: FormInputProps) => (
-              <FormInput key={field.label} {...field} />
+            {formFields.map((field: FormFieldMeta) => (
+              <FormInput
+                key={field.label}
+                {...field}
+                value={formData[field.name]}
+                onChange={handleInputChange}
+              />
             ))}
 
             <div className="md:col-span-2">
