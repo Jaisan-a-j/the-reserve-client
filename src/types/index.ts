@@ -40,3 +40,11 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
 }
+
+export type ChefType = {
+  id: number;
+  image: string;
+  name: string;
+  role: string;
+  description: string;
+};
