@@ -1,14 +1,7 @@
-import { User, Phone, CalendarDays, Clock3 } from "lucide-react";
+import { Phone, CalendarDays, Clock3 } from "lucide-react";
 import type { FormFieldMeta } from "../types";
 
 export const formFields: FormFieldMeta[] = [
-  {
-    label: "Your Name",
-    type: "text",
-    placeholder: "Enter your name...",
-    icon: User,
-    name: "fullName",
-  },
   {
     label: "Phone Number",
     type: "text",

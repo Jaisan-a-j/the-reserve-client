@@ -25,11 +25,21 @@ export interface FormInputProps extends FormFieldMeta {
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
+
+export interface BookingInput {
+  phone: string;
+  date: string;
+  time: string;
+  message?: string;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 export interface UserType {

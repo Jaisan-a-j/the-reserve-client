@@ -32,7 +32,6 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // LOGIN
       .addCase(loginUserThunk.pending, (state) => {
         state.loading = true;
       })
@@ -48,7 +47,6 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // REGISTER
       .addCase(registerUserThunk.pending, (state) => {
         state.loading = true;
       })
@@ -59,13 +57,11 @@ const authSlice = createSlice({
         state.token = action.payload.token;
       })
 
-      // GOOGLE LOGIN
       .addCase(loginGoogleThunk.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.token = action.payload.token;
       })
 
-      // VERIFY USER
       .addCase(verifyUserThunk.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.token = action.payload.token;

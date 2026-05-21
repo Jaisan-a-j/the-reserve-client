@@ -1,22 +1,73 @@
 import { MessageCircle } from "lucide-react";
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
+import { useAppSelector } from "../../hooks/reduxHooks";
+import { createBooking } from "../../services/bookingService";
 import ContactCard from "./ContactCard";
 import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
 
 const Reservation = () => {
+  const token = useAppSelector((state) => state.auth.token);
   const [formData, setFormData] = useState<Record<string, string>>({
-    fullName: "",
+    message: "",
     phone: "",
     date: "",
     time: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    if (!token) {
+      setErrorMessage("Please log in before booking a table.");
+      return;
+    }
+
+    if (!formData.phone || !formData.date || !formData.time) {
+      setErrorMessage("Phone, date and time are required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await createBooking(
+        {
+          phone: formData.phone,
+          date: formData.date,
+          time: formData.time,
+          message: formData.message,
+        },
+        token,
+      );
+      setSuccessMessage(
+        "Booking request sent successfully. We will confirm it shortly.",
+      );
+      setFormData({
+        message: "",
+        phone: "",
+        date: "",
+        time: "",
+      });
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Booking failed. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,8 +93,18 @@ const Reservation = () => {
 
           <form
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
           >
+            {errorMessage && (
+              <div className="md:col-span-2 text-sm text-red-600">
+                {errorMessage}
+              </div>
+            )}
+            {successMessage && (
+              <div className="md:col-span-2 text-sm text-green-600">
+                {successMessage}
+              </div>
+            )}
             {formFields.map((field: FormFieldMeta) => (
               <FormInput
                 key={field.label}
@@ -63,8 +124,11 @@ const Reservation = () => {
               <div className="flex items-start border border-gray-300 rounded-xl px-4 py-4 focus-within:border-purple-500 transition-colors">
                 <textarea
                   id="message"
+                  name="message"
                   rows={4}
                   placeholder="Enter your message"
+                  value={formData.message}
+                  onChange={handleInputChange}
                   className="w-full outline-none text-sm text-gray-700 resize-none placeholder:text-gray-400"
                 />
                 <MessageCircle className="text-gray-500 mt-1" size={20} />
@@ -72,7 +136,11 @@ const Reservation = () => {
             </div>
 
             <div className="md:col-span-2">
-              <Button content="Book a Reservation" />
+              <Button
+                type="submit"
+                content={loading ? "Booking..." : "Book a Reservation"}
+                disabled={loading}
+              />
             </div>
           </form>
         </div>
