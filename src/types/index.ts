@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ChangeEvent, InputHTMLAttributes } from "react";
 
 export interface LinkTypes {
   name: string;
@@ -12,20 +13,37 @@ export interface CategoryTypes {
   image: string;
 }
 
-export interface FormInputProps {
+export interface FormFieldMeta {
   label: string;
   type: string;
   placeholder?: string;
   icon: LucideIcon;
   name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  min?: string;
+  maxLength?: number;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
 }
+
+export interface FormInputProps extends FormFieldMeta {
+  value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+}
+
+export interface BookingInput {
+  phone: string;
+  date: string;
+  time: string;
+  message?: string;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 export interface UserType {
@@ -40,3 +58,11 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
 }
+
+export type ChefType = {
+  id: number;
+  image: string;
+  name: string;
+  role: string;
+  description: string;
+};

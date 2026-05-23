@@ -1,11 +1,113 @@
 import { MessageCircle } from "lucide-react";
+import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
+import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
+import { createBookingThunk } from "../../features/booking/bookingThunk";
+import { clearBookingMessage } from "../../features/booking/bookingSlice";
 import ContactCard from "./ContactCard";
-import type { FormInputProps } from "../../types";
+import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
 
 const Reservation = () => {
+  const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.token);
+  const { loading, success, error, message } = useAppSelector(
+    (state) => state.booking,
+  );
+  const [formData, setFormData] = useState<Record<string, string>>({
+    message: "",
+    phone: "",
+    date: "",
+    time: "",
+  });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (success) {
+      timer = setTimeout(() => {
+        dispatch(clearBookingMessage());
+      }, 4000);
+    }
+    return () => clearTimeout(timer);
+  }, [success, dispatch]);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    let nextValue = value;
+
+    if (name === "phone") {
+      nextValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: nextValue }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFieldErrors({});
+
+    if (!token) {
+      setFieldErrors({
+        form: "Please log in before booking a table.",
+      });
+      return;
+    }
+
+    const errors: Record<string, string> = {};
+
+    if (!formData.phone) {
+      errors.phone = "Phone number is required.";
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      errors.phone = "Phone number must be exactly 10 digits.";
+    }
+
+    if (!formData.date) {
+      errors.date = "Date is required.";
+    } else if (formData.date < today) {
+      errors.date = "Please choose today or a future date.";
+    }
+
+    if (!formData.time) {
+      errors.time = "Time is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    await dispatch(
+      createBookingThunk({
+        bookingData: {
+          phone: formData.phone,
+          date: formData.date,
+          time: formData.time,
+          message: formData.message,
+        },
+        token,
+      }),
+    );
+    setFormData({
+      message: "",
+      phone: "",
+      date: "",
+      time: "",
+    });
+  };
+
   return (
     <section
       id="reservation"
@@ -29,10 +131,30 @@ const Reservation = () => {
 
           <form
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleSubmit}
           >
-            {formFields.map((field: FormInputProps) => (
-              <FormInput key={field.label} {...field} />
+            {fieldErrors.form && (
+              <div className="md:col-span-2 text-sm text-red-600">
+                {fieldErrors.form}
+              </div>
+            )}
+            {error && (
+              <div className="md:col-span-2 text-sm text-red-600">{error}</div>
+            )}
+            {success && message && (
+              <div className="md:col-span-2 text-sm text-green-600">
+                {message}
+              </div>
+            )}
+            {formFields.map((field: FormFieldMeta) => (
+              <FormInput
+                key={field.label}
+                {...field}
+                min={field.name === "date" ? today : field.min}
+                value={formData[field.name]}
+                onChange={handleInputChange}
+                error={fieldErrors[field.name]}
+              />
             ))}
 
             <div className="md:col-span-2">
@@ -45,8 +167,11 @@ const Reservation = () => {
               <div className="flex items-start border border-gray-300 rounded-xl px-4 py-4 focus-within:border-purple-500 transition-colors">
                 <textarea
                   id="message"
+                  name="message"
                   rows={4}
                   placeholder="Enter your message"
+                  value={formData.message}
+                  onChange={handleInputChange}
                   className="w-full outline-none text-sm text-gray-700 resize-none placeholder:text-gray-400"
                 />
                 <MessageCircle className="text-gray-500 mt-1" size={20} />
@@ -54,7 +179,11 @@ const Reservation = () => {
             </div>
 
             <div className="md:col-span-2">
-              <Button content="Book a Reservation" />
+              <Button
+                type="submit"
+                content={loading ? "Booking..." : "Book a Reservation"}
+                disabled={loading}
+              />
             </div>
           </form>
         </div>

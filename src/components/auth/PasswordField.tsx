@@ -14,12 +14,6 @@ const PasswordField = ({
     <>
       <div className="flex justify-between mb-2">
         <label className="text-sm font-semibold text-gray-700">{label}</label>
-        <a
-          href="#"
-          className="text-sm font-semibold text-[#7c5dfa] hover:underline"
-        >
-          Forgot Password?
-        </a>
       </div>
       <div className="relative">
         <input

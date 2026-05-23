@@ -32,21 +32,27 @@ const AuthForm = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     setErrorMessage("");
 
-    if (!formData.email || !formData.password) {
-      setErrorMessage("Email and password are required");
-      return;
+    const errors = [];
+
+    if (!userExist && !formData.fullName.trim()) {
+      errors.push("Full name");
     }
 
-    if (!userExist && !formData.fullName) {
-      setErrorMessage("Full name is required");
-      return;
+    if (!formData.email.trim()) {
+      errors.push("Email");
     }
 
+    if (!formData.password.trim()) {
+      errors.push("Password");
+    }
+
+    if (errors.length > 0) {
+      setErrorMessage(`${errors.join(", ")} is required`);
+      return;
+    }
     try {
       if (userExist) {
         await dispatch(
@@ -77,6 +83,16 @@ const AuthForm = () => {
         setErrorMessage("Something went wrong");
       }
     }
+  };
+
+  const changeForm = () => {
+    setErrorMessage("");
+    setFormData({
+      fullName: "",
+      email: "",
+      password: "",
+    });
+    setUserExist(!userExist);
   };
 
   return (
@@ -111,12 +127,25 @@ const AuthForm = () => {
           onChange={handleChange}
           name="password"
         />
+
+        {userExist && (
+          <a
+            href="#"
+            className="text-sm font-semibold text-[#7c5dfa] hover:underline flex justify-end"
+          >
+            Forgot Password?
+          </a>
+        )}
+
         {errorMessage && (
           <p className="text-red-500 text-sm font-medium">{errorMessage}</p>
         )}
 
         <div className="grid">
-          <Button content={userExist ? "Login" : "Register"} />
+          <Button
+            content={userExist ? "Login" : "Register"}
+            onClick={() => handleSubmit()}
+          />
         </div>
       </form>
 
@@ -124,7 +153,7 @@ const AuthForm = () => {
         {!userExist ? "Already have an account?" : "Don't have an account?"}{" "}
         <a
           className="text-[#7c5dfa] font-bold hover:underline cursor-pointer"
-          onClick={() => setUserExist(!userExist)}
+          onClick={changeForm}
         >
           {!userExist ? "Login" : " Register"}
         </a>
