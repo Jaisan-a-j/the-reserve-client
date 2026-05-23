@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, InputHTMLAttributes } from "react";
 
 export interface LinkTypes {
   name: string;
@@ -19,6 +19,9 @@ export interface FormFieldMeta {
   placeholder?: string;
   icon: LucideIcon;
   name: string;
+  min?: string;
+  maxLength?: number;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
 }
 
 export interface FormInputProps extends FormFieldMeta {

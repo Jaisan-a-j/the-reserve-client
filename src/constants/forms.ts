@@ -4,10 +4,12 @@ import type { FormFieldMeta } from "../types";
 export const formFields: FormFieldMeta[] = [
   {
     label: "Phone Number",
-    type: "text",
-    placeholder: "+1 (212) 555-1234",
+    type: "tel",
+    placeholder: "Enter 10 digit phone number",
     icon: Phone,
     name: "phone",
+    inputMode: "numeric",
+    maxLength: 10,
   },
   {
     label: "Enter The Date",

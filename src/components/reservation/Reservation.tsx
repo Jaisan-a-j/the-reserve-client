@@ -33,11 +33,19 @@ const Reservation = () => {
     return () => clearTimeout(timer);
   }, [success, dispatch]);
 
+  const today = new Date().toISOString().split("T")[0];
+
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let nextValue = value;
+
+    if (name === "phone") {
+      nextValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: nextValue }));
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
         const updated = { ...prev };
@@ -62,10 +70,16 @@ const Reservation = () => {
 
     if (!formData.phone) {
       errors.phone = "Phone number is required.";
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      errors.phone = "Phone number must be exactly 10 digits.";
     }
+
     if (!formData.date) {
       errors.date = "Date is required.";
+    } else if (formData.date < today) {
+      errors.date = "Please choose today or a future date.";
     }
+
     if (!formData.time) {
       errors.time = "Time is required.";
     }
@@ -136,6 +150,7 @@ const Reservation = () => {
               <FormInput
                 key={field.label}
                 {...field}
+                min={field.name === "date" ? today : field.min}
                 value={formData[field.name]}
                 onChange={handleInputChange}
                 error={fieldErrors[field.name]}

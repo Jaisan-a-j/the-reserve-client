@@ -9,6 +9,9 @@ const FormInput = ({
   onChange,
   name,
   error,
+  min,
+  maxLength,
+  inputMode,
 }: FormInputProps) => {
   return (
     <div>
@@ -25,6 +28,9 @@ const FormInput = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          min={min}
+          maxLength={maxLength}
+          inputMode={inputMode}
           className="w-full outline-none text-sm text-gray-700 placeholder:text-gray-400 bg-transparent"
         />
 

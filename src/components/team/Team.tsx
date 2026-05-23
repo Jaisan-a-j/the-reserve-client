@@ -8,7 +8,7 @@ import { chefs } from "../../constants/chef";
 
 const Team = () => {
   return (
-    <section className="bg-[#f7f5f8] py-24 px-6">
+    <section id="team" className="bg-[#f7f5f8] py-24 px-6">
       <div className="text-center max-w-4xl mx-auto">
         <h2 className="text-4xl md:text-5xl font-bold text-[#2b2b52]">
           Get to Know Our Amazing Team
