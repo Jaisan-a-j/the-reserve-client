@@ -1,73 +1,77 @@
 import { MessageCircle } from "lucide-react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
-import { useAppSelector } from "../../hooks/reduxHooks";
-import { createBooking } from "../../services/bookingService";
+import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
+import { createBookingThunk } from "../../features/booking/bookingThunk";
+import { clearBookingMessage } from "../../features/booking/bookingSlice";
 import ContactCard from "./ContactCard";
 import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
 
 const Reservation = () => {
+  const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const { loading, success, error, message } = useAppSelector(
+    (state) => state.booking,
+  );
   const [formData, setFormData] = useState<Record<string, string>>({
     message: "",
     phone: "",
     date: "",
     time: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [validationError, setValidationError] = useState("");
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (success) {
+      timer = setTimeout(() => {
+        dispatch(clearBookingMessage());
+      }, 4000);
+    }
+    return () => clearTimeout(timer);
+  }, [success, dispatch]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setValidationError("");
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSuccessMessage("");
-    setErrorMessage("");
+    setValidationError("");
 
     if (!token) {
-      setErrorMessage("Please log in before booking a table.");
+      setValidationError("Please log in before booking a table.");
       return;
     }
 
     if (!formData.phone || !formData.date || !formData.time) {
-      setErrorMessage("Phone, date and time are required.");
+      setValidationError("Phone, date and time are required.");
       return;
     }
 
-    try {
-      setLoading(true);
-      await createBooking(
-        {
+    await dispatch(
+      createBookingThunk({
+        bookingData: {
           phone: formData.phone,
           date: formData.date,
           time: formData.time,
           message: formData.message,
         },
         token,
-      );
-      setSuccessMessage(
-        "Booking request sent successfully. We will confirm it shortly.",
-      );
-      setFormData({
-        message: "",
-        phone: "",
-        date: "",
-        time: "",
-      });
-    } catch (error) {
-      console.error(error);
-      setErrorMessage("Booking failed. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
+      }),
+    );
+    setFormData({
+      message: "",
+      phone: "",
+      date: "",
+      time: "",
+    });
   };
 
   return (
@@ -95,14 +99,17 @@ const Reservation = () => {
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
             onSubmit={handleSubmit}
           >
-            {errorMessage && (
+            {validationError && (
               <div className="md:col-span-2 text-sm text-red-600">
-                {errorMessage}
+                {validationError}
               </div>
             )}
-            {successMessage && (
+            {error && (
+              <div className="md:col-span-2 text-sm text-red-600">{error}</div>
+            )}
+            {success && message && (
               <div className="md:col-span-2 text-sm text-green-600">
-                {successMessage}
+                {message}
               </div>
             )}
             {formFields.map((field: FormFieldMeta) => (

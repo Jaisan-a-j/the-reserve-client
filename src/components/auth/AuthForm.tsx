@@ -32,9 +32,7 @@ const AuthForm = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     setErrorMessage("");
 
     const errors = [];
@@ -144,7 +142,10 @@ const AuthForm = () => {
         )}
 
         <div className="grid">
-          <Button content={userExist ? "Login" : "Register"} />
+          <Button
+            content={userExist ? "Login" : "Register"}
+            onClick={() => handleSubmit()}
+          />
         </div>
       </form>
 
