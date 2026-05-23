@@ -21,7 +21,7 @@ const Reservation = () => {
     date: "",
     time: "",
   });
-  const [validationError, setValidationError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -38,20 +38,40 @@ const Reservation = () => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setValidationError("");
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setValidationError("");
+    setFieldErrors({});
 
     if (!token) {
-      setValidationError("Please log in before booking a table.");
+      setFieldErrors({
+        form: "Please log in before booking a table.",
+      });
       return;
     }
 
-    if (!formData.phone || !formData.date || !formData.time) {
-      setValidationError("Phone, date and time are required.");
+    const errors: Record<string, string> = {};
+
+    if (!formData.phone) {
+      errors.phone = "Phone number is required.";
+    }
+    if (!formData.date) {
+      errors.date = "Date is required.";
+    }
+    if (!formData.time) {
+      errors.time = "Time is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -99,9 +119,9 @@ const Reservation = () => {
             className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
             onSubmit={handleSubmit}
           >
-            {validationError && (
+            {fieldErrors.form && (
               <div className="md:col-span-2 text-sm text-red-600">
-                {validationError}
+                {fieldErrors.form}
               </div>
             )}
             {error && (
@@ -118,6 +138,7 @@ const Reservation = () => {
                 {...field}
                 value={formData[field.name]}
                 onChange={handleInputChange}
+                error={fieldErrors[field.name]}
               />
             ))}
 

@@ -24,6 +24,7 @@ export interface FormFieldMeta {
 export interface FormInputProps extends FormFieldMeta {
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
 }
 
 export interface BookingInput {
