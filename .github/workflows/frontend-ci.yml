@@ -41,9 +41,10 @@ jobs:
       - name: Build and Push Frontend Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: . # Looks at the root of your frontend repo
-          file: ./Dockerfile # Points to your frontend Dockerfile
-          push: true # Tells it to upload to Docker Hub if the build succeeds
+          context: .
+          file: ./Dockerfile
+          push: true
+          # Hardcoding your public username 'jaisanaj' prevents secret fetching errors!
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/the-reserve:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/the-reserve:${{ github.sha }}
+            jaisanaj/the-reserve:latest
+            jaisanaj/the-reserve:${{ github.sha }}
