@@ -48,3 +48,11 @@ jobs:
           tags: |
             jaisanaj/the-reserve:latest
             jaisanaj/the-reserve:${{ github.sha }}
+
+      # --- PHASE 3: NOTIFY RENDER TO DEPLOY THE NEW IMAGE ---
+      - name: Trigger Render Deployment
+        env:
+          DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          echo "Notifying Render to pull the latest image from Docker Hub..."
+          curl -f "$DEPLOY_URL"

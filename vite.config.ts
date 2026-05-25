@@ -9,6 +9,9 @@ export default defineConfig({
     tailwindcss(),
     babel({ presets: [reactCompilerPreset()] }),
   ],
+  server: {
+    allowedHosts: ["the-reserve-idbq.onrender.com"],
+  },
   test: {
     globals: true,
     environment: "jsdom",
