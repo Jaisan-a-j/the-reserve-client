@@ -15,7 +15,9 @@ const FormInput = ({
 }: FormInputProps) => {
   return (
     <div>
-      <label className="block text-sm text-[#2b2d42] mb-2">{label}</label>
+      <label htmlFor={name} className="block text-sm text-[#2b2d42] mb-2">
+        {label}
+      </label>
 
       <div
         className={`flex items-center border rounded-xl px-4 h-13 transition-colors ${
@@ -23,6 +25,7 @@ const FormInput = ({
         }`}
       >
         <input
+          id={name}
           type={type}
           name={name}
           value={value}

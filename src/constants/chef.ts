@@ -1,52 +1,58 @@
 import { type ChefType } from "../types";
-import sophiamiller from "../assets/sophia-miller.jpeg";
+import cheyenneworkman from "../assets/cheyenneworkman.jpeg";
+import coreyrosser from "../assets/corey-rosser.jpeg";
+import marilynwestervelt from "../assets/marilyn-westervelt.jpeg";
+import ryanpassaquindiciarcand from "../assets/ryan-passaquindici-arcand.jpeg";
+import emmawatson from "../assets/emma-watson.jpeg";
+import jamescarter from "../assets/james-carter.jpeg";
+import danielbrown from "../assets/daniel-brown.jpeg";
 
 export const chefs: ChefType[] = [
   {
     id: 1,
-    image: sophiamiller,
+    image: cheyenneworkman,
     name: "Cheyenne Workman",
     role: "Head Chef",
     description: "A visionary leader driving innovation and collaboration.",
   },
   {
     id: 2,
-    image: sophiamiller,
+    image: coreyrosser,
     name: "Corey Rosser",
     role: "Kitchen Manager",
     description: "Leading teams to build smart, scalable solutions.",
   },
   {
     id: 3,
-    image: sophiamiller,
+    image: marilynwestervelt,
     name: "Marilyn Westervelt",
     role: "Sous Chef",
     description: "Crafting intuitive and engaging user experiences.",
   },
   {
     id: 4,
-    image: sophiamiller,
+    image: ryanpassaquindiciarcand,
     name: "Ryan Passaquindici Arcand",
     role: "Culinary Director",
     description: "Bringing designs to life with seamless interfaces.",
   },
   {
     id: 5,
-    image: sophiamiller,
+    image: emmawatson,
     name: "Emma Watson",
     role: "Pastry Chef",
     description: "Creating delightful desserts with creativity and passion.",
   },
   {
     id: 6,
-    image: sophiamiller,
+    image: jamescarter,
     name: "James Carter",
     role: "Executive Chef",
     description: "Delivering excellence through culinary mastery.",
   },
   {
     id: 7,
-    image: sophiamiller,
+    image: danielbrown,
     name: "Daniel Brown",
     role: "Food Specialist",
     description: "Passionate about quality ingredients and flavors.",

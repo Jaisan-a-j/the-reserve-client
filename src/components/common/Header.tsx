@@ -16,6 +16,7 @@ const Header = () => {
   const authAction = () => {
     if (user) {
       dispatch(logout());
+      localStorage.removeItem("token");
     } else {
       navigate("/auth");
     }
