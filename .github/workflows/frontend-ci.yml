@@ -24,7 +24,8 @@ jobs:
         run: npm ci
 
       - name: Run Unit & Integration Tests
-        run: npm test -- --watchAll=false --ci
+        # Removed '-- --watchAll=false --ci' and replaced it with 'run'
+        run: npm test run
 
       # --- CD PART: Deploy to Production via Vercel ---
       - name: Install Vercel CLI
