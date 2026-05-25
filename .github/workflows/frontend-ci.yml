@@ -1,4 +1,4 @@
-name: Frontend Docker CI/CD Pipeline
+name: Frontend Docker CI/CD
 
 on:
   push:
