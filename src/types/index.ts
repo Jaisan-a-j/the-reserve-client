@@ -57,6 +57,7 @@ export interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  minLoaderDuration?: number;
 }
 
 export type ChefType = {

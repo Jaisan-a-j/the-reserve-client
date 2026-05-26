@@ -15,6 +15,7 @@ const initialState: AuthState = {
   token: localStorage.getItem("token"),
   loading: false,
   error: null,
+  minLoaderDuration: 1000,
 };
 
 const authSlice = createSlice({
@@ -33,6 +34,7 @@ const authSlice = createSlice({
 
       .addCase(loginUserThunk.pending, (state) => {
         state.loading = true;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(loginUserThunk.fulfilled, (state, action) => {
@@ -48,6 +50,7 @@ const authSlice = createSlice({
 
       .addCase(registerUserThunk.pending, (state) => {
         state.loading = true;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(registerUserThunk.fulfilled, (state, action) => {
@@ -63,6 +66,7 @@ const authSlice = createSlice({
 
       .addCase(loginGoogleThunk.pending, (state) => {
         state.loading = true;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(loginGoogleThunk.fulfilled, (state, action) => {
@@ -78,16 +82,19 @@ const authSlice = createSlice({
 
       .addCase(logoutThunk.pending, (state) => {
         state.loading = true;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(logoutThunk.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
         state.token = null;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(logoutThunk.rejected, (state) => {
         state.loading = false;
+        state.minLoaderDuration = 1000;
       })
 
       .addCase(verifyUserThunk.fulfilled, (state, action) => {

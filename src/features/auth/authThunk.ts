@@ -113,6 +113,7 @@ export const logoutThunk = createAsyncThunk(
   "auth/logout",
   async (_, thunkAPI) => {
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       localStorage.removeItem("token");
 
       return {};
