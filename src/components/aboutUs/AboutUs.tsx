@@ -1,6 +1,5 @@
 import { BadgeCheck, ReceiptText, Sparkles, PartyPopper } from "lucide-react";
 import aboutUs from "../../assets/about-us.jpeg";
-import Button from "../common/Button";
 import AboutData from "./AboutData";
 
 const AboutUs = () => {
@@ -16,8 +15,6 @@ const AboutUs = () => {
           perseverance. United, we have faced challenges, celebrated victories,
           and woven a narrative of growth and success.
         </p>
-
-        <Button content="Read More →" className="self-start mt-8" />
       </div>
 
       <div className="max-w-6xl mx-auto mt-24 relative">

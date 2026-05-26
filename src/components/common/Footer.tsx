@@ -19,7 +19,10 @@ const Footer = () => {
         <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-gray-600 text-sm font-medium">
           {navLinks.map((links: LinkTypes) => (
             <li key={links.name}>
-              <a href="#" className="hover:text-black transition-colors">
+              <a
+                href={`#${links.name.replace(/\s+/g, "").toLowerCase()}`}
+                className="hover:text-black transition-colors"
+              >
                 {links.name}
               </a>
             </li>
@@ -28,15 +31,15 @@ const Footer = () => {
       </nav>
 
       <div className="flex items-center gap-6 text-gray-700">
-        <a href="#" className="hover:text-black transition-colors">
+        <a className="hover:text-black transition-colors">
           <Gamepad2 size={22} />
         </a>
 
-        <a href="#" className="hover:text-black transition-colors">
+        <a className="hover:text-black transition-colors">
           <X size={22} />
         </a>
 
-        <a href="#" className="hover:text-black transition-colors">
+        <a className="hover:text-black transition-colors">
           <GitMerge size={22} />
         </a>
       </div>

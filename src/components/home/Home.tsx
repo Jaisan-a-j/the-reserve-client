@@ -1,13 +1,11 @@
 import { useEffect } from "react";
 import home from "../../assets/home.jpeg";
-import Button from "../common/Button";
 import { useAppSelector } from "../../hooks/reduxHooks";
 import { verifyUserThunk } from "../../features/auth/authThunk";
 import { useAppDispatch } from "../../hooks/reduxHooks";
 
 const Main = () => {
   const dispatch = useAppDispatch();
-
   useEffect(() => {
     dispatch(verifyUserThunk());
   }, []);
@@ -40,7 +38,12 @@ const Main = () => {
           </p>
         </div>
 
-        <Button content="Experience the Flavor →" className="mt-8" />
+        <a
+          href="#buyonline"
+          className="bg-linear-to-r mt-8 from-purple-500 to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md transition-all duration-300"
+        >
+          Experience the Flavor →
+        </a>
       </div>
 
       <div className="mt-16 xl:mt-28">

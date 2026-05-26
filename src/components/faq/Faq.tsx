@@ -66,11 +66,6 @@ const Faq = () => {
                       {faq.description}
                     </p>
                   </div>
-
-                  <button className="text-[#7c5dfa] text-3xl font-medium mt-10 flex items-center justify-center gap-3 hover:gap-5 transition-all duration-300">
-                    Learn more
-                    <ArrowRight size={24} />
-                  </button>
                 </div>
               </SwiperSlide>
             ))}
