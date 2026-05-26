@@ -6,7 +6,7 @@ import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { logout } from "../../features/auth/authSlice";
+import { logoutThunk } from "../../features/auth/authThunk";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useAppSelector((state) => state.auth.user);
@@ -15,8 +15,7 @@ const Header = () => {
 
   const authAction = () => {
     if (user) {
-      dispatch(logout());
-      localStorage.removeItem("token");
+      dispatch(logoutThunk());
     } else {
       navigate("/auth");
     }

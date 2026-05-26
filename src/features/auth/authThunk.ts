@@ -108,3 +108,20 @@ export const verifyUserThunk = createAsyncThunk(
     }
   },
 );
+
+export const logoutThunk = createAsyncThunk(
+  "auth/logout",
+  async (_, thunkAPI) => {
+    try {
+      localStorage.removeItem("token");
+
+      return {};
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response: { data: { message: string } } };
+        return thunkAPI.rejectWithValue(axiosError.response.data.message);
+      }
+      return thunkAPI.rejectWithValue("Logout failed");
+    }
+  },
+);
