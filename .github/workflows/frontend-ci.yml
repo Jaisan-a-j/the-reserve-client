@@ -48,6 +48,8 @@ jobs:
           tags: |
             jaisanaj/the-reserve:latest
             jaisanaj/the-reserve:${{ github.sha }}
+          build-args: |
+            VITE_API_BASE_URL=https://the-reserve-backend.onrender.com
 
       # --- PHASE 3: NOTIFY RENDER TO DEPLOY THE NEW IMAGE ---
       - name: Trigger Render Deployment
