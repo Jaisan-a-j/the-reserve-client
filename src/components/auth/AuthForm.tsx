@@ -24,35 +24,66 @@ const AuthForm = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    fullName?: string;
+    email?: string;
+    password?: string;
+  }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    setErrorMessage("");
   };
 
-  const handleSubmit = async () => {
-    setErrorMessage("");
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+    return emailRegex.test(email);
+  };
 
-    const errors = [];
+  const validatePassword = (password: string) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s])(?!.*\s).{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    setErrorMessage("");
+    setFieldErrors({});
+
+    const errors: {
+      fullName?: string;
+      email?: string;
+      password?: string;
+    } = {};
 
     if (!userExist && !formData.fullName.trim()) {
-      errors.push("Full name");
+      errors.fullName = "Full name is required";
     }
 
     if (!formData.email.trim()) {
-      errors.push("Email");
+      errors.email = "Email is required";
+    } else if (!userExist && !validateEmail(formData.email)) {
+      errors.email =
+        "Enter a valid email address with @ and a proper domain like .com or .org";
     }
 
     if (!formData.password.trim()) {
-      errors.push("Password");
+      errors.password = "Password is required";
+    } else if (!userExist && !validatePassword(formData.password)) {
+      errors.password =
+        "Password must be at least 8 characters, include uppercase, lowercase, number, special character, and contain no spaces.";
     }
 
-    if (errors.length > 0) {
-      setErrorMessage(`${errors.join(", ")} is required`);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
+
     try {
       if (userExist) {
         await dispatch(
@@ -75,14 +106,17 @@ const AuthForm = () => {
         navigate("/");
       }
     } catch (error) {
-      if (typeof error === "string") {
-        setErrorMessage(error);
-      } else if (axios.isAxiosError(error)) {
-        setErrorMessage(
-          error.response?.data?.message || "Something went wrong",
-        );
+      const message =
+        typeof error === "string"
+          ? error
+          : axios.isAxiosError(error)
+            ? error.response?.data?.message
+            : "Something went wrong";
+
+      if (!userExist && message === "User already exists") {
+        setFieldErrors({ email: message });
       } else {
-        setErrorMessage("Something went wrong");
+        setErrorMessage(message || "Something went wrong");
       }
     }
   };
@@ -109,6 +143,7 @@ const AuthForm = () => {
             onChange={handleChange}
             icon={PersonStandingIcon}
             placeholder="Enter your full name"
+            error={fieldErrors.fullName}
           />
         )}
 
@@ -120,6 +155,7 @@ const AuthForm = () => {
           onChange={handleChange}
           icon={Mail}
           placeholder="Enter your email"
+          error={fieldErrors.email}
         />
 
         <PasswordField
@@ -128,6 +164,7 @@ const AuthForm = () => {
           value={formData.password}
           onChange={handleChange}
           name="password"
+          error={fieldErrors.password}
         />
 
         {userExist && (
