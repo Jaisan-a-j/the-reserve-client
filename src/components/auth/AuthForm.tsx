@@ -75,7 +75,9 @@ const AuthForm = () => {
         navigate("/");
       }
     } catch (error) {
-      if (axios.isAxiosError(error)) {
+      if (typeof error === "string") {
+        setErrorMessage(error);
+      } else if (axios.isAxiosError(error)) {
         setErrorMessage(
           error.response?.data?.message || "Something went wrong",
         );
