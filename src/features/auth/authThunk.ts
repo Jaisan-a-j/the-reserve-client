@@ -3,6 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   loginUser,
   registerUser,
+  verifyOtp,
   loginGoogleUser,
   getCurrentUser,
 } from "../../services/authService";
@@ -26,9 +27,7 @@ export const registerUserThunk = createAsyncThunk(
       };
       const response = await registerUser(normalizedData);
 
-      localStorage.setItem("token", response.token);
-
-      return response;
+      return { ...response, email: normalizedData.email };
     } catch (error: unknown) {
       if (error && typeof error === "object" && "response" in error) {
         const axiosError = error as { response: { data: { message: string } } };
@@ -55,6 +54,36 @@ export const loginUserThunk = createAsyncThunk(
         email: data.email.trim().toLowerCase(),
       };
       const response = await loginUser(normalizedData);
+
+      localStorage.setItem("token", response.token);
+
+      return response;
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response: { data: { message: string } } };
+        return thunkAPI.rejectWithValue(axiosError.response.data.message);
+      }
+
+      return thunkAPI.rejectWithValue("An unexpected error occurred");
+    }
+  },
+);
+
+export const verifyOtpThunk = createAsyncThunk(
+  "auth/verifyOtp",
+  async (
+    data: {
+      email: string;
+      otp: string;
+    },
+    thunkAPI,
+  ) => {
+    try {
+      const normalizedData = {
+        ...data,
+        email: data.email.trim().toLowerCase(),
+      };
+      const response = await verifyOtp(normalizedData);
 
       localStorage.setItem("token", response.token);
 

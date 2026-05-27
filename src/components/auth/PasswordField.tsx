@@ -9,6 +9,7 @@ const PasswordField = ({
   value,
   onChange,
   error,
+  disabled,
 }: Omit<FormInputProps, "icon" | "type">) => {
   const [showPassword, setShowPassword] = useState(false);
   return (
@@ -23,10 +24,13 @@ const PasswordField = ({
           name={name}
           onChange={onChange}
           placeholder={placeholder}
+          disabled={disabled}
           className={`w-full pl-12 pr-12 py-3.5 bg-gray-50 border rounded-xl transition-all outline-none ${
-            error
-              ? "border-red-500 bg-red-50 focus:border-red-500"
-              : "border-gray-100 focus:ring-2 focus:ring-[#7c5dfa] focus:bg-white"
+            disabled
+              ? "cursor-not-allowed bg-gray-100 text-gray-400"
+              : error
+                ? "border-red-500 bg-red-50 focus:border-red-500"
+                : "border-gray-100 focus:ring-2 focus:ring-[#7c5dfa] focus:bg-white"
           }`}
         />
         <Lock

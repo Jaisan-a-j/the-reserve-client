@@ -12,6 +12,7 @@ const FormInput = ({
   min,
   maxLength,
   inputMode,
+  disabled,
 }: FormInputProps) => {
   return (
     <div>
@@ -34,7 +35,10 @@ const FormInput = ({
           min={min}
           maxLength={maxLength}
           inputMode={inputMode}
-          className="w-full outline-none text-sm text-gray-700 placeholder:text-gray-400 bg-transparent"
+          disabled={disabled}
+          className={`w-full outline-none text-sm placeholder:text-gray-400 bg-transparent ${
+            disabled ? "cursor-not-allowed text-gray-400" : "text-gray-700"
+          }`}
         />
 
         <Icon className={error ? "text-red-500" : "text-gray-500"} size={18} />

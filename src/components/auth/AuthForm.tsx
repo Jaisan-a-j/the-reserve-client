@@ -10,6 +10,7 @@ import { useAppDispatch } from "../../hooks/reduxHooks";
 import {
   loginUserThunk,
   registerUserThunk,
+  verifyOtpThunk,
 } from "../../features/auth/authThunk";
 
 const AuthForm = () => {
@@ -28,7 +29,12 @@ const AuthForm = () => {
     fullName?: string;
     email?: string;
     password?: string;
+    otp?: string;
   }>({});
+  const [otpStage, setOtpStage] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [verificationMessage, setVerificationMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -36,6 +42,13 @@ const AuthForm = () => {
       [e.target.name]: e.target.value,
     });
     setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+    setErrorMessage("");
+    setVerificationMessage("");
+  };
+
+  const handleVerificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVerificationCode(e.target.value);
+    setFieldErrors((prev) => ({ ...prev, otp: undefined }));
     setErrorMessage("");
   };
 
@@ -54,38 +67,28 @@ const AuthForm = () => {
     event?.preventDefault();
     setErrorMessage("");
     setFieldErrors({});
+    setVerificationMessage("");
 
-    const errors: {
-      fullName?: string;
-      email?: string;
-      password?: string;
-    } = {};
+    if (userExist) {
+      const errors: {
+        email?: string;
+        password?: string;
+      } = {};
 
-    if (!userExist && !formData.fullName.trim()) {
-      errors.fullName = "Full name is required";
-    }
+      if (!formData.email.trim()) {
+        errors.email = "Email is required";
+      }
 
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!userExist && !validateEmail(formData.email)) {
-      errors.email =
-        "Enter a valid email address with @ and a proper domain like .com or .org";
-    }
+      if (!formData.password.trim()) {
+        errors.password = "Password is required";
+      }
 
-    if (!formData.password.trim()) {
-      errors.password = "Password is required";
-    } else if (!userExist && !validatePassword(formData.password)) {
-      errors.password =
-        "Password must be at least 8 characters, include uppercase, lowercase, number, special character, and contain no spaces.";
-    }
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
 
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-
-    try {
-      if (userExist) {
+      try {
         await dispatch(
           loginUserThunk({
             email: formData.email,
@@ -94,8 +97,52 @@ const AuthForm = () => {
         ).unwrap();
 
         navigate("/");
-      } else {
-        await dispatch(
+      } catch (error) {
+        const message =
+          typeof error === "string"
+            ? error
+            : axios.isAxiosError(error)
+              ? error.response?.data?.message
+              : "Something went wrong";
+
+        setErrorMessage(message || "Something went wrong");
+      }
+
+      return;
+    }
+
+    if (!otpStage) {
+      const errors: {
+        fullName?: string;
+        email?: string;
+        password?: string;
+      } = {};
+
+      if (!formData.fullName.trim()) {
+        errors.fullName = "Full name is required";
+      }
+
+      if (!formData.email.trim()) {
+        errors.email = "Email is required";
+      } else if (!validateEmail(formData.email)) {
+        errors.email =
+          "Enter a valid email address with @ and a proper domain like .com or .org";
+      }
+
+      if (!formData.password.trim()) {
+        errors.password = "Password is required";
+      } else if (!validatePassword(formData.password)) {
+        errors.password =
+          "Password must be at least 8 characters, include uppercase, lowercase, number, special character, and contain no spaces.";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+
+      try {
+        const response = await dispatch(
           registerUserThunk({
             fullName: formData.fullName,
             email: formData.email,
@@ -103,8 +150,50 @@ const AuthForm = () => {
           }),
         ).unwrap();
 
-        navigate("/");
+        setOtpStage(true);
+        setPendingEmail(response.email || formData.email.trim().toLowerCase());
+        setVerificationMessage(
+          response.message ||
+            "A verification code has been sent to your email. Enter it below.",
+        );
+        setFormData((current) => ({
+          ...current,
+          email: response.email || current.email.trim().toLowerCase(),
+        }));
+      } catch (error) {
+        const message =
+          typeof error === "string"
+            ? error
+            : axios.isAxiosError(error)
+              ? error.response?.data?.message
+              : "Something went wrong";
+
+        if (message === "User already exists") {
+          setFieldErrors({ email: message });
+        } else {
+          setErrorMessage(message || "Something went wrong");
+        }
       }
+
+      return;
+    }
+
+    const errors: { otp?: string } = {};
+    if (!verificationCode.trim()) {
+      errors.otp = "Verification code is required";
+      setFieldErrors(errors);
+      return;
+    }
+
+    try {
+      await dispatch(
+        verifyOtpThunk({
+          email: pendingEmail || formData.email,
+          otp: verificationCode.trim(),
+        }),
+      ).unwrap();
+
+      navigate("/");
     } catch (error) {
       const message =
         typeof error === "string"
@@ -113,11 +202,7 @@ const AuthForm = () => {
             ? error.response?.data?.message
             : "Something went wrong";
 
-      if (!userExist && message === "User already exists") {
-        setFieldErrors({ email: message });
-      } else {
-        setErrorMessage(message || "Something went wrong");
-      }
+      setFieldErrors({ otp: message || "Something went wrong" });
     }
   };
 
@@ -132,7 +217,12 @@ const AuthForm = () => {
       fullName: "",
       email: "",
       password: "",
+      otp: "",
     });
+    setOtpStage(false);
+    setVerificationCode("");
+    setPendingEmail("");
+    setVerificationMessage("");
     setUserExist(!userExist);
   };
 
@@ -149,6 +239,7 @@ const AuthForm = () => {
             icon={PersonStandingIcon}
             placeholder="Enter your full name"
             error={fieldErrors.fullName}
+            disabled={otpStage}
           />
         )}
 
@@ -161,6 +252,7 @@ const AuthForm = () => {
           icon={Mail}
           placeholder="Enter your email"
           error={fieldErrors.email}
+          disabled={otpStage}
         />
 
         <PasswordField
@@ -170,7 +262,27 @@ const AuthForm = () => {
           onChange={handleChange}
           name="password"
           error={fieldErrors.password}
+          disabled={otpStage}
         />
+
+        {!userExist && otpStage && (
+          <>
+            <p className="text-sm text-gray-600">
+              {verificationMessage ||
+                "A verification code has been sent to your email. Enter it below."}
+            </p>
+            <FormInput
+              label="Verification Code"
+              type="text"
+              name="otp"
+              value={verificationCode}
+              onChange={handleVerificationChange}
+              icon={Mail}
+              placeholder="Enter the 6-digit code"
+              error={fieldErrors.otp}
+            />
+          </>
+        )}
 
         {userExist && (
           <a
@@ -187,7 +299,9 @@ const AuthForm = () => {
 
         <div className="grid">
           <Button
-            content={userExist ? "Login" : "Register"}
+            content={
+              userExist ? "Login" : otpStage ? "Verify Code" : "Register"
+            }
             onClick={() => handleSubmit()}
           />
         </div>

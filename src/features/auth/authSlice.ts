@@ -7,6 +7,7 @@ import {
   registerUserThunk,
   loginGoogleThunk,
   verifyUserThunk,
+  verifyOtpThunk,
   logoutThunk,
 } from "./authThunk";
 
@@ -53,13 +54,27 @@ const authSlice = createSlice({
         state.minLoaderDuration = 1000;
       })
 
-      .addCase(registerUserThunk.fulfilled, (state, action) => {
+      .addCase(registerUserThunk.fulfilled, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(registerUserThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      .addCase(verifyOtpThunk.pending, (state) => {
+        state.loading = true;
+        state.minLoaderDuration = 1000;
+      })
+
+      .addCase(verifyOtpThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
       })
 
-      .addCase(registerUserThunk.rejected, (state, action) => {
+      .addCase(verifyOtpThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
