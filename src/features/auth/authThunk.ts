@@ -20,7 +20,11 @@ export const registerUserThunk = createAsyncThunk(
     thunkAPI,
   ) => {
     try {
-      const response = await registerUser(data);
+      const normalizedData = {
+        ...data,
+        email: data.email.trim().toLowerCase(),
+      };
+      const response = await registerUser(normalizedData);
 
       localStorage.setItem("token", response.token);
 
@@ -46,7 +50,11 @@ export const loginUserThunk = createAsyncThunk(
     thunkAPI,
   ) => {
     try {
-      const response = await loginUser(data);
+      const normalizedData = {
+        ...data,
+        email: data.email.trim().toLowerCase(),
+      };
+      const response = await loginUser(normalizedData);
 
       localStorage.setItem("token", response.token);
 

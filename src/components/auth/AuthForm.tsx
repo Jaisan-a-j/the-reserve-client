@@ -128,6 +128,11 @@ const AuthForm = () => {
       email: "",
       password: "",
     });
+    setFieldErrors({
+      fullName: "",
+      email: "",
+      password: "",
+    });
     setUserExist(!userExist);
   };
 
