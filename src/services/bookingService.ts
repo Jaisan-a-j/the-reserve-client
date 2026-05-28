@@ -32,3 +32,11 @@ export const getMyBookings = async (token: string) => {
 
   return response.data;
 };
+
+export const getBookedTimeSlots = async (date: string) => {
+  const response = await API.get("/available-slots", {
+    params: { date },
+  });
+
+  return response.data;
+};

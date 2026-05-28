@@ -5,6 +5,7 @@ import { formFields } from "../../constants/forms";
 import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
 import { createBookingThunk } from "../../features/booking/bookingThunk";
 import { clearBookingMessage } from "../../features/booking/bookingSlice";
+import { getBookedTimeSlots } from "../../services/bookingService";
 import ContactCard from "./ContactCard";
 import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
@@ -22,6 +23,8 @@ const Reservation = () => {
     time: "",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -33,9 +36,31 @@ const Reservation = () => {
     return () => clearTimeout(timer);
   }, [success, dispatch]);
 
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (formData.date) {
+        setLoadingSlots(true);
+        try {
+          const data = await getBookedTimeSlots(formData.date);
+          setBookedSlots(data.bookedTimeSlots || []);
+        } catch (err) {
+          console.error("Error fetching booked slots:", err);
+          setBookedSlots([]);
+        } finally {
+          setLoadingSlots(false);
+        }
+      }
+    };
+
+    fetchBookedSlots();
+  }, [formData.date]);
+
   const today = new Date().toISOString().split("T")[0];
 
   const handleTimeSlotSelect = (time: string) => {
+    if (bookedSlots.includes(time)) {
+      return;
+    }
     setFormData((prev) => ({ ...prev, time }));
     if (fieldErrors.time) {
       setFieldErrors((prev) => {
@@ -76,24 +101,26 @@ const Reservation = () => {
   ];
 
   const getAvailableTimeSlots = () => {
-    if (formData.date !== today) {
-      return timeSlots;
+    let availableSlots = timeSlots;
+
+    if (formData.date === today) {
+      const currentHour = new Date().getHours();
+
+      availableSlots = timeSlots.filter((slot) => {
+        const [time, period] = slot.split(" ");
+        let hour = parseInt(time.split(":")[0]);
+
+        if (period === "PM" && hour !== 12) {
+          hour += 12;
+        } else if (period === "AM" && hour === 12) {
+          hour = 0;
+        }
+
+        return hour > currentHour;
+      });
     }
 
-    const currentHour = new Date().getHours();
-
-    return timeSlots.filter((slot) => {
-      const [time, period] = slot.split(" ");
-      let hour = parseInt(time.split(":")[0]);
-
-      if (period === "PM" && hour !== 12) {
-        hour += 12;
-      } else if (period === "AM" && hour === 12) {
-        hour = 0;
-      }
-
-      return hour > currentHour;
-    });
+    return availableSlots.filter((slot) => !bookedSlots.includes(slot));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -203,23 +230,39 @@ const Reservation = () => {
             {formData.date && (
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-[#2b2d42] mb-4">
-                  Select Available Time Slot
+                  Select Available Time Slot{" "}
+                  {loadingSlots && (
+                    <span className="text-sm text-gray-500">(Loading...)</span>
+                  )}
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                  {getAvailableTimeSlots().map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => handleTimeSlotSelect(slot)}
-                      className={`py-3 px-4 rounded-lg font-semibold transition-all ${
-                        formData.time === slot
-                          ? "bg-[#7c5dfa] text-white shadow-md"
-                          : "bg-green-100 text-[#059669] hover:bg-green-200"
-                      }`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
+                  {getAvailableTimeSlots().length > 0 ? (
+                    getAvailableTimeSlots().map((slot) => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => handleTimeSlotSelect(slot)}
+                        disabled={bookedSlots.includes(slot)}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          formData.time === slot
+                            ? "bg-[#7c5dfa] text-white shadow-md"
+                            : bookedSlots.includes(slot)
+                              ? "bg-red-100 text-red-600 cursor-not-allowed opacity-50"
+                              : "bg-green-100 text-[#059669] hover:bg-green-200"
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    ))
+                  ) : timeSlots.length > bookedSlots.length ? (
+                    <p className="text-gray-600 col-span-3">
+                      No available slots for this date.
+                    </p>
+                  ) : (
+                    <p className="text-gray-600 col-span-3">
+                      All slots booked for this date.
+                    </p>
+                  )}
                 </div>
                 {fieldErrors.time && (
                   <p className="text-red-600 text-xs mt-2">
