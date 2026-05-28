@@ -35,8 +35,19 @@ const Reservation = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const handleTimeSlotSelect = (time: string) => {
+    setFormData((prev) => ({ ...prev, time }));
+    if (fieldErrors.time) {
+      setFieldErrors((prev) => {
+        const updated = { ...prev };
+        delete updated.time;
+        return updated;
+      });
+    }
+  };
+
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     let nextValue = value;
@@ -54,6 +65,15 @@ const Reservation = () => {
       });
     }
   };
+
+  const timeSlots = [
+    "09:00 AM",
+    "11:00 AM",
+    "01:00 PM",
+    "03:00 PM",
+    "05:00 PM",
+    "07:00 PM",
+  ];
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -126,7 +146,7 @@ const Reservation = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
           <h3 className="text-2xl font-bold tracking-tight text-[#2b2d42]">
-            Book a Table
+            Reserve Your Table
           </h3>
 
           <form
@@ -159,42 +179,34 @@ const Reservation = () => {
                 />
               ))}
 
-            <div>
-              <label
-                htmlFor="time"
-                className="block text-sm font-medium text-[#2b2d42] mb-2"
-              >
-                Select Time Slot
-              </label>
-              <div
-                className={`flex items-center border rounded-xl px-4 h-13 transition-colors ${
-                  fieldErrors.time
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300"
-                }`}
-              >
-                <select
-                  id="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleInputChange}
-                  className={`w-full outline-none text-sm bg-transparent appearance-none cursor-pointer font-medium ${
-                    formData.time === "" ? "text-gray-400" : "text-gray-700"
-                  }`}
-                >
-                  <option value="">Choose a time slot</option>
-                  <option value="9 - 11">9 - 11</option>
-                  <option value="11 - 13">11 - 13</option>
-                  <option value="13 - 15">13 - 15</option>
-                  <option value="15 - 17">15 - 17</option>
-                  <option value="17 - 19">17 - 19</option>
-                  <option value="19 - 21">19 - 21</option>
-                </select>
+            {formData.date && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#2b2d42] mb-4">
+                  Select Available Time Slot
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => handleTimeSlotSelect(slot)}
+                      className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                        formData.time === slot
+                          ? "bg-[#7c5dfa] text-white shadow-md"
+                          : "bg-green-100 text-[#059669] hover:bg-green-200"
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+                {fieldErrors.time && (
+                  <p className="text-red-600 text-xs mt-2">
+                    {fieldErrors.time}
+                  </p>
+                )}
               </div>
-              {fieldErrors.time && (
-                <p className="text-red-600 text-xs mt-1">{fieldErrors.time}</p>
-              )}
-            </div>
+            )}
 
             <div className="md:col-span-2">
               <label
