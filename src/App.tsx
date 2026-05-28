@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "./hooks/reduxHooks";
 import MainPage from "./pages/MainPage";
+import BuyOnlinePage from "./pages/BuyOnlinePage";
 import MainLayout from "./layouts/MainLayout";
 import AuthPage from "./pages/AuthPage";
 import FullScreenLoader from "./components/common/FullScreenLoader";
@@ -79,6 +80,7 @@ function App() {
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<MainPage />} />
+            <Route path="/buy-online" element={<BuyOnlinePage />} />
           </Route>
           <Route path="/auth" element={<AuthPage />} />
         </Routes>

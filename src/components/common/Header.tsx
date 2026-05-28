@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
@@ -21,9 +21,17 @@ const Header = () => {
     }
   };
 
+  const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>, path?: string) => {
+    if (path?.startsWith("/")) {
+      e.preventDefault();
+      navigate(path);
+      setIsOpen(false);
+    }
+  };
+
   return (
     <nav className="relative">
-      <header className="fixed top-0 left-0 w-full h-16 z-[70] flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
+      <header className="fixed top-0 left-0 w-full h-16 z-70 flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
         <div className="flex items-center">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden">
             <img src={logo} alt="Logo" className="w-7 h-7 object-contain" />
@@ -37,7 +45,10 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={`#${link.name.replace(/\s+/g, "").toLowerCase()}`}
+              href={
+                link.path ?? `#${link.name.replace(/\s+/g, "").toLowerCase()}`
+              }
+              onClick={(e) => handleLinkClick(e, link.path)}
               className={`font-medium transition-colors hover:text-[#7c5dfa] ${
                 link.active ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
@@ -69,16 +80,21 @@ const Header = () => {
       </header>
 
       <div
-        className={`lg:hidden fixed left-0 w-full bg-white z-[60] border-b border-gray-100 transition-all duration-300 ease-in-out shadow-xl overflow-hidden ${
-          isOpen ? "top-16 opacity-100 py-8" : "top-[-100%] opacity-0 py-0"
+        className={`lg:hidden fixed left-0 w-full bg-white z-60 border-b border-gray-100 transition-all duration-300 ease-in-out shadow-xl overflow-hidden ${
+          isOpen ? "top-16 opacity-100 py-8" : "-top-full opacity-0 py-0"
         }`}
       >
         <nav className="flex flex-col px-6 gap-6">
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={`#${link.name.replace(/\s+/g, "").toLowerCase()}`}
-              onClick={() => setIsOpen(false)}
+              href={
+                link.path ?? `#${link.name.replace(/\s+/g, "").toLowerCase()}`
+              }
+              onClick={(e) => {
+                handleLinkClick(e, link.path);
+                setIsOpen(false);
+              }}
               className={`text-lg font-medium transition-colors ${
                 link.active ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
@@ -97,7 +113,7 @@ const Header = () => {
 
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/20 z-[50]"
+          className="lg:hidden fixed inset-0 bg-black/20 z-50"
           onClick={() => setIsOpen(false)}
         />
       )}

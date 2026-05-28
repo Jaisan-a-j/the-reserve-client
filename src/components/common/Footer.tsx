@@ -20,7 +20,10 @@ const Footer = () => {
           {navLinks.map((links: LinkTypes) => (
             <li key={links.name}>
               <a
-                href={`#${links.name.replace(/\s+/g, "").toLowerCase()}`}
+                href={
+                  links.path ??
+                  `#${links.name.replace(/\s+/g, "").toLowerCase()}`
+                }
                 className="hover:text-black transition-colors"
               >
                 {links.name}

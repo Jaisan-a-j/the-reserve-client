@@ -4,6 +4,7 @@ import type { ChangeEvent, InputHTMLAttributes } from "react";
 export interface LinkTypes {
   name: string;
   active: boolean;
+  path?: string;
 }
 
 export interface CategoryTypes {
