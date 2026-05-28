@@ -36,7 +36,7 @@ const Reservation = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     let nextValue = value;
@@ -146,16 +146,55 @@ const Reservation = () => {
                 {message}
               </div>
             )}
-            {formFields.map((field: FormFieldMeta) => (
-              <FormInput
-                key={field.label}
-                {...field}
-                min={field.name === "date" ? today : field.min}
-                value={formData[field.name]}
-                onChange={handleInputChange}
-                error={fieldErrors[field.name]}
-              />
-            ))}
+            {formFields
+              .filter((field) => field.name !== "time")
+              .map((field: FormFieldMeta) => (
+                <FormInput
+                  key={field.label}
+                  {...field}
+                  min={field.name === "date" ? today : field.min}
+                  value={formData[field.name]}
+                  onChange={handleInputChange}
+                  error={fieldErrors[field.name]}
+                />
+              ))}
+
+            <div>
+              <label
+                htmlFor="time"
+                className="block text-sm font-medium text-[#2b2d42] mb-2"
+              >
+                Select Time Slot
+              </label>
+              <div
+                className={`flex items-center border rounded-xl px-4 h-13 transition-colors ${
+                  fieldErrors.time
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <select
+                  id="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  className={`w-full outline-none text-sm bg-transparent appearance-none cursor-pointer font-medium ${
+                    formData.time === "" ? "text-gray-400" : "text-gray-700"
+                  }`}
+                >
+                  <option value="">Choose a time slot</option>
+                  <option value="9 - 11">9 - 11</option>
+                  <option value="11 - 13">11 - 13</option>
+                  <option value="13 - 15">13 - 15</option>
+                  <option value="15 - 17">15 - 17</option>
+                  <option value="17 - 19">17 - 19</option>
+                  <option value="19 - 21">19 - 21</option>
+                </select>
+              </div>
+              {fieldErrors.time && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.time}</p>
+              )}
+            </div>
 
             <div className="md:col-span-2">
               <label
@@ -217,7 +256,7 @@ const Reservation = () => {
               Opening Hours
               <br className="md:hidden" />
               <span className="text-purple-600 font-bold ml-1 md:ml-2">
-                9AM - 11PM
+                9AM - 9PM
               </span>
               <br />
               Everyday
