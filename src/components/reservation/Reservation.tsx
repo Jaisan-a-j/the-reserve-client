@@ -75,6 +75,27 @@ const Reservation = () => {
     "07:00 PM",
   ];
 
+  const getAvailableTimeSlots = () => {
+    if (formData.date !== today) {
+      return timeSlots;
+    }
+
+    const currentHour = new Date().getHours();
+
+    return timeSlots.filter((slot) => {
+      const [time, period] = slot.split(" ");
+      let hour = parseInt(time.split(":")[0]);
+
+      if (period === "PM" && hour !== 12) {
+        hour += 12;
+      } else if (period === "AM" && hour === 12) {
+        hour = 0;
+      }
+
+      return hour > currentHour;
+    });
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFieldErrors({});
@@ -185,7 +206,7 @@ const Reservation = () => {
                   Select Available Time Slot
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                  {timeSlots.map((slot) => (
+                  {getAvailableTimeSlots().map((slot) => (
                     <button
                       key={slot}
                       type="button"
