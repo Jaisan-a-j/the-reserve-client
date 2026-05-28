@@ -38,6 +38,15 @@ export interface BookingInput {
   message?: string;
 }
 
+export interface UserBooking {
+  _id: string;
+  phone: string;
+  date: string;
+  time: string;
+  message?: string;
+  status: string;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;
