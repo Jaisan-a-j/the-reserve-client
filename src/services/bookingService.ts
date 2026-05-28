@@ -33,6 +33,16 @@ export const getMyBookings = async (token: string) => {
   return response.data;
 };
 
+export const cancelBooking = async (bookingId: string, token: string) => {
+  const response = await API.delete(`/${bookingId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};
+
 export const getBookedTimeSlots = async (date: string) => {
   const response = await API.get("/available-slots", {
     params: { date },

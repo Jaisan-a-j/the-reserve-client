@@ -1,14 +1,33 @@
 import { MessageCircle } from "lucide-react";
-import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+} from "react";
 import FormInput from "./FormInput";
 import { formFields } from "../../constants/forms";
 import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
 import { createBookingThunk } from "../../features/booking/bookingThunk";
 import { clearBookingMessage } from "../../features/booking/bookingSlice";
-import { getBookedTimeSlots } from "../../services/bookingService";
+import {
+  getBookedTimeSlots,
+  getMyBookings,
+  cancelBooking,
+} from "../../services/bookingService";
 import ContactCard from "./ContactCard";
 import type { FormFieldMeta } from "../../types";
 import Button from "../common/Button";
+
+type UserBooking = {
+  _id: string;
+  phone: string;
+  date: string;
+  time: string;
+  message?: string;
+  status: string;
+};
 
 const Reservation = () => {
   const dispatch = useAppDispatch();
@@ -25,6 +44,27 @@ const Reservation = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [userBookings, setUserBookings] = useState<UserBooking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const refreshMyBookings = useCallback(async () => {
+    if (!token) {
+      setUserBookings([]);
+      return;
+    }
+
+    setLoadingBookings(true);
+    try {
+      const data = await getMyBookings(token);
+      setUserBookings(data.bookings || []);
+    } catch (err) {
+      console.error("Error fetching user bookings:", err);
+      setUserBookings([]);
+    } finally {
+      setLoadingBookings(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -35,6 +75,14 @@ const Reservation = () => {
     }
     return () => clearTimeout(timer);
   }, [success, dispatch]);
+
+  useEffect(() => {
+    const loadBookings = async () => {
+      await refreshMyBookings();
+    };
+
+    void loadBookings();
+  }, [refreshMyBookings]);
 
   useEffect(() => {
     const fetchBookedSlots = async () => {
@@ -57,10 +105,21 @@ const Reservation = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const existingBookingForSelectedDate = userBookings.find(
+    (booking) => booking.date === formData.date,
+  );
+
+  const hasReachedBookingLimit = userBookings.length >= 2;
+
   const handleTimeSlotSelect = (time: string) => {
     if (bookedSlots.includes(time)) {
       return;
     }
+
+    if (existingBookingForSelectedDate) {
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, time }));
     if (fieldErrors.time) {
       setFieldErrors((prev) => {
@@ -88,6 +147,23 @@ const Reservation = () => {
         delete updated[name];
         return updated;
       });
+    }
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!token) {
+      setCancelError("You must be logged in to cancel a booking.");
+      return;
+    }
+
+    setCancelError(null);
+
+    try {
+      await cancelBooking(bookingId, token);
+      await refreshMyBookings();
+    } catch (err) {
+      console.error("Error cancelling booking:", err);
+      setCancelError("Could not cancel booking. Please try again.");
     }
   };
 
@@ -157,7 +233,7 @@ const Reservation = () => {
       return;
     }
 
-    await dispatch(
+    const resultAction = await dispatch(
       createBookingThunk({
         bookingData: {
           phone: formData.phone,
@@ -168,12 +244,16 @@ const Reservation = () => {
         token,
       }),
     );
-    setFormData({
-      message: "",
-      phone: "",
-      date: "",
-      time: "",
-    });
+
+    if (createBookingThunk.fulfilled.match(resultAction)) {
+      await refreshMyBookings();
+      setFormData({
+        message: "",
+        phone: "",
+        date: "",
+        time: "",
+      });
+    }
   };
 
   return (
@@ -196,111 +276,184 @@ const Reservation = () => {
           <h3 className="text-2xl font-bold tracking-tight text-[#2b2d42]">
             Reserve Your Table
           </h3>
-
-          <form
-            className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-            onSubmit={handleSubmit}
-          >
-            {fieldErrors.form && (
-              <div className="md:col-span-2 text-sm text-red-600">
-                {fieldErrors.form}
+          {hasReachedBookingLimit ? (
+            <div className="mt-8 space-y-4">
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+                <p className="text-sm font-medium text-red-700">
+                  You already have two active bookings. You cannot reserve more
+                  until you cancel one of your existing bookings.
+                </p>
               </div>
-            )}
-            {error && (
-              <div className="md:col-span-2 text-sm text-red-600">{error}</div>
-            )}
-            {success && message && (
-              <div className="md:col-span-2 text-sm text-green-600">
-                {message}
-              </div>
-            )}
-            {formFields
-              .filter((field) => field.name !== "time")
-              .map((field: FormFieldMeta) => (
-                <FormInput
-                  key={field.label}
-                  {...field}
-                  min={field.name === "date" ? today : field.min}
-                  value={formData[field.name]}
-                  onChange={handleInputChange}
-                  error={fieldErrors[field.name]}
-                />
-              ))}
+              {cancelError && (
+                <div className="text-sm text-red-600">{cancelError}</div>
+              )}
+              {loadingBookings ? (
+                <p className="text-sm text-gray-600">
+                  Loading your bookings...
+                </p>
+              ) : (
+                <div className="grid gap-4">
+                  {userBookings.map((booking) => (
+                    <div
+                      key={booking._id}
+                      className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+                    >
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold">Date:</span>{" "}
+                        {booking.date}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold">Time:</span>{" "}
+                        {booking.time}
+                      </p>
+                      {booking.message && (
+                        <p className="text-sm text-gray-700">
+                          <span className="font-semibold">Message:</span>{" "}
+                          {booking.message}
+                        </p>
+                      )}
+                      <div className="mt-4">
+                        <Button
+                          content="Cancel Booking"
+                          type="button"
+                          onClick={() => handleCancelBooking(booking._id)}
+                          className="bg-red-600 text-white hover:bg-red-700"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <form
+              className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
+              onSubmit={handleSubmit}
+            >
+              {fieldErrors.form && (
+                <div className="md:col-span-2 text-sm text-red-600">
+                  {fieldErrors.form}
+                </div>
+              )}
+              {error && (
+                <div className="md:col-span-2 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+              {success && message && (
+                <div className="md:col-span-2 text-sm text-green-600">
+                  {message}
+                </div>
+              )}
+              {formFields
+                .filter((field) => field.name !== "time")
+                .map((field: FormFieldMeta) => (
+                  <FormInput
+                    key={field.label}
+                    {...field}
+                    min={field.name === "date" ? today : field.min}
+                    value={formData[field.name]}
+                    onChange={handleInputChange}
+                    error={fieldErrors[field.name]}
+                  />
+                ))}
 
-            {formData.date && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#2b2d42] mb-4">
-                  Select Available Time Slot{" "}
-                  {loadingSlots && (
-                    <span className="text-sm text-gray-500">(Loading...)</span>
-                  )}
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {getAvailableTimeSlots().length > 0 ? (
-                    getAvailableTimeSlots().map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => handleTimeSlotSelect(slot)}
-                        disabled={bookedSlots.includes(slot)}
-                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
-                          formData.time === slot
-                            ? "bg-[#7c5dfa] text-white shadow-md"
-                            : bookedSlots.includes(slot)
-                              ? "bg-red-100 text-red-600 cursor-not-allowed opacity-50"
-                              : "bg-green-100 text-[#059669] hover:bg-green-200"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))
-                  ) : timeSlots.length > bookedSlots.length ? (
-                    <p className="text-gray-600 col-span-3">
-                      No available slots for this date.
+              {formData.date && existingBookingForSelectedDate ? (
+                <div className="md:col-span-2 rounded-2xl border border-yellow-300 bg-yellow-50 p-6">
+                  <p className="text-sm font-medium text-yellow-900 mb-3">
+                    You already have a booking on {formData.date}.
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <span className="font-semibold">Booked time:</span>{" "}
+                    {existingBookingForSelectedDate.time}
+                  </p>
+                  {existingBookingForSelectedDate.message && (
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Message:</span>{" "}
+                      {existingBookingForSelectedDate.message}
                     </p>
-                  ) : (
-                    <p className="text-gray-600 col-span-3">
-                      All slots booked for this date.
+                  )}
+                  <p className="mt-3 text-sm text-gray-600">
+                    Please select a different date to reserve another slot.
+                  </p>
+                </div>
+              ) : formData.date ? (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-[#2b2d42] mb-4">
+                    Select Available Time Slot{" "}
+                    {loadingSlots && (
+                      <span className="text-sm text-gray-500">
+                        (Loading...)
+                      </span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {getAvailableTimeSlots().length > 0 ? (
+                      getAvailableTimeSlots().map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => handleTimeSlotSelect(slot)}
+                          disabled={bookedSlots.includes(slot)}
+                          className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                            formData.time === slot
+                              ? "bg-[#7c5dfa] text-white shadow-md"
+                              : bookedSlots.includes(slot)
+                                ? "bg-red-100 text-red-600 cursor-not-allowed opacity-50"
+                                : "bg-green-100 text-[#059669] hover:bg-green-200"
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))
+                    ) : timeSlots.length > bookedSlots.length ? (
+                      <p className="text-gray-600 col-span-3">
+                        No available slots for this date.
+                      </p>
+                    ) : (
+                      <p className="text-gray-600 col-span-3">
+                        All slots booked for this date.
+                      </p>
+                    )}
+                  </div>
+                  {fieldErrors.time && (
+                    <p className="text-red-600 text-xs mt-2">
+                      {fieldErrors.time}
                     </p>
                   )}
                 </div>
-                {fieldErrors.time && (
-                  <p className="text-red-600 text-xs mt-2">
-                    {fieldErrors.time}
-                  </p>
-                )}
-              </div>
-            )}
+              ) : null}
 
-            <div className="md:col-span-2">
-              <label
-                htmlFor="message"
-                className="block text-sm font-medium text-[#2b2d42] mb-2"
-              >
-                Message
-              </label>
-              <div className="flex items-start border border-gray-300 rounded-xl px-4 py-4 focus-within:border-purple-500 transition-colors">
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={4}
-                  placeholder="Enter your message"
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  className="w-full outline-none text-sm text-gray-700 resize-none placeholder:text-gray-400"
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-[#2b2d42] mb-2"
+                >
+                  Message
+                </label>
+                <div className="flex items-start border border-gray-300 rounded-xl px-4 py-4 focus-within:border-purple-500 transition-colors">
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={4}
+                    placeholder="Enter your message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    className="w-full outline-none text-sm text-gray-700 resize-none placeholder:text-gray-400"
+                  />
+                  <MessageCircle className="text-gray-500 mt-1" size={20} />
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <Button
+                  type="submit"
+                  content={loading ? "Booking..." : "Book a Reservation"}
+                  disabled={loading}
                 />
-                <MessageCircle className="text-gray-500 mt-1" size={20} />
               </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <Button
-                type="submit"
-                content={loading ? "Booking..." : "Book a Reservation"}
-                disabled={loading}
-              />
-            </div>
-          </form>
+            </form>
+          )}{" "}
         </div>
 
         <div className="lg:col-span-5 flex flex-col gap-6">
