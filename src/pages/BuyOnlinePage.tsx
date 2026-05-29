@@ -17,11 +17,13 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 import { getFoodItemsThunk } from "../features/food/foodThunk";
+import {
+  addCartItemThunk,
+  getCartItemsThunk,
+  removeCartItemThunk,
+  updateCartItemQuantityThunk,
+} from "../features/cart/cartThunk";
 import type { FoodItem } from "../types";
-
-type CartItem = FoodItem & {
-  quantity: number;
-};
 
 type FilterSectionProps = {
   title: string;
@@ -61,17 +63,28 @@ const BuyOnlinePage = () => {
     loading: foodLoading,
     error: foodError,
   } = useAppSelector((state) => state.food);
+  const {
+    items: cartItems,
+    loading: cartLoading,
+    error: cartError,
+  } = useAppSelector((state) => state.cart);
+  const token = useAppSelector((state) => state.auth.token);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
     dispatch(getFoodItemsThunk());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(getCartItemsThunk());
+    }
+  }, [dispatch, token]);
 
   const filteredMenu = useMemo(() => {
     return menuItems.filter((item) => {
@@ -90,7 +103,7 @@ const BuyOnlinePage = () => {
   }, [minPrice, maxPrice, selectedCuisines, selectedDietary, selectedSpice]);
 
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.food.price * item.quantity,
     0,
   );
   const tax = subtotal * 0.05;
@@ -109,31 +122,20 @@ const BuyOnlinePage = () => {
   };
 
   const addToCart = (item: FoodItem) => {
-    setCartItems((current) => {
-      const found = current.find((cartItem) => cartItem._id === item._id);
-      if (found) {
-        return current.map((cartItem) =>
-          cartItem._id === item._id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem,
-        );
-      }
-      return [...current, { ...item, quantity: 1 }];
-    });
+    dispatch(addCartItemThunk({ foodId: item._id, quantity: 1 }));
   };
 
-  const updateQuantity = (id: string, delta: number) => {
-    setCartItems((current) =>
-      current.map((item) =>
-        item._id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item,
-      ),
+  const updateQuantity = (foodId: string, quantity: number, delta: number) => {
+    dispatch(
+      updateCartItemQuantityThunk({
+        foodId,
+        quantity: Math.max(1, quantity + delta),
+      }),
     );
   };
 
-  const removeItem = (id: string) => {
-    setCartItems((current) => current.filter((item) => item._id !== id));
+  const removeItem = (foodId: string) => {
+    dispatch(removeCartItemThunk(foodId));
   };
 
   const minPricePercent = minPrice;
@@ -361,8 +363,18 @@ const BuyOnlinePage = () => {
             Your Basket ({cartItems.length})
           </h2>
 
+          {cartError && (
+            <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {cartError}
+            </div>
+          )}
+
           <div className="space-y-7">
-            {cartItems.length === 0 ? (
+            {cartLoading && cartItems.length === 0 ? (
+              <p className="text-base font-normal text-gray-500">
+                Loading cart items...
+              </p>
+            ) : cartItems.length === 0 ? (
               <p className="text-base font-normal text-gray-500">
                 Your basket is empty.
               </p>
@@ -373,24 +385,30 @@ const BuyOnlinePage = () => {
                   className="grid grid-cols-[64px_1fr] gap-4"
                 >
                   <img
-                    src={item.image}
-                    alt={item.title}
+                    src={item.food.image}
+                    alt={item.food.title}
                     className="h-16 w-16 rounded-md object-cover"
                   />
                   <div className="min-w-0">
                     <h3 className="truncate text-base font-semibold">
-                      {item.title}
+                      {item.food.title}
                     </h3>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                       <span className="text-base font-normal">
-                        {formatCurrency(item.price)}
+                        {formatCurrency(item.food.price)}
                       </span>
                       <div className="flex items-center gap-4">
                         <div className="flex h-10 items-center rounded-md border border-[#825cff] bg-white px-3">
                           <button
                             type="button"
-                            aria-label={`Decrease ${item.title}`}
-                            onClick={() => updateQuantity(item._id, -1)}
+                            aria-label={`Decrease ${item.food.title}`}
+                            onClick={() =>
+                              updateQuantity(
+                                item.food._id,
+                                item.quantity,
+                                -1,
+                              )
+                            }
                             className="grid h-7 w-7 place-items-center text-[#111111]"
                           >
                             <Minus size={16} strokeWidth={2.8} />
@@ -400,8 +418,10 @@ const BuyOnlinePage = () => {
                           </span>
                           <button
                             type="button"
-                            aria-label={`Increase ${item.title}`}
-                            onClick={() => updateQuantity(item._id, 1)}
+                            aria-label={`Increase ${item.food.title}`}
+                            onClick={() =>
+                              updateQuantity(item.food._id, item.quantity, 1)
+                            }
                             className="grid h-7 w-7 place-items-center text-[#111111]"
                           >
                             <Plus size={16} strokeWidth={2.8} />
@@ -409,8 +429,8 @@ const BuyOnlinePage = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeItem(item._id)}
-                          aria-label={`Remove ${item.title}`}
+                          onClick={() => removeItem(item.food._id)}
+                          aria-label={`Remove ${item.food.title}`}
                           className="grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff]"
                         >
                           <Trash2 size={18} strokeWidth={2.3} />

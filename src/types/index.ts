@@ -59,6 +59,12 @@ export interface FoodItem {
   image: string;
 }
 
+export interface CartItem {
+  _id: string;
+  food: FoodItem;
+  quantity: number;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;
