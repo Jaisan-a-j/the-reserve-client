@@ -1,4 +1,10 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import {
   ArrowRight,
   ChevronUp,
@@ -9,22 +15,11 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import beverages from "../assets/beverages.jpeg";
-import signatureDishes from "../assets/signature-dishes.jpeg";
-import smallBites from "../assets/small-bites.jpeg";
+import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
+import { getFoodItemsThunk } from "../features/food/foodThunk";
+import type { FoodItem } from "../types";
 
-type MenuItem = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  category: string;
-  dietary: string[];
-  spice: string;
-  image: string;
-};
-
-type CartItem = MenuItem & {
+type CartItem = FoodItem & {
   quantity: number;
 };
 
@@ -43,99 +38,6 @@ const cuisineOptions = [
 const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
 
-const menuItems: MenuItem[] = [
-  {
-    id: 1,
-    title: "Artisanal Salmon Bowl",
-    description: "Pan-seared salmon with quinoa, edamame, and microgreens.",
-    price: 26,
-    category: "Mains",
-    dietary: ["Gluten-Free"],
-    spice: "Mild",
-    image: signatureDishes,
-  },
-  {
-    id: 2,
-    title: "Mediterranean Halloumi Salad",
-    description: "Mediterranean nism with salad, halloumi and maseroom.",
-    price: 26,
-    category: "Salads",
-    dietary: ["Vegetarian"],
-    spice: "Mild",
-    image: beverages,
-  },
-  {
-    id: 3,
-    title: "Truffle Ricotta Gnocchi",
-    description: "Truffle Ricotta gnochhi with connon-ceson, and microgreens.",
-    price: 26,
-    category: "Mains",
-    dietary: ["Vegetarian"],
-    spice: "Medium",
-    image: smallBites,
-  },
-  {
-    id: 4,
-    title: "Truffle Ricotta Bowl",
-    description: "Pan-seared salmon with quinoa, edamame, and microgreens.",
-    price: 26,
-    category: "Mains",
-    dietary: ["Vegetarian"],
-    spice: "Medium",
-    image: smallBites,
-  },
-  {
-    id: 5,
-    title: "Mediterranean Halloumi Salad",
-    description: "Pan-seared salmon with quinoa, edamame, and microgreens.",
-    price: 26,
-    category: "Salads",
-    dietary: ["Vegetarian"],
-    spice: "Mild",
-    image: beverages,
-  },
-  {
-    id: 6,
-    title: "Berry Bliss Smoothie",
-    description: "Pan-seared salmon with quinoa, edamame, and microgreens.",
-    price: 10,
-    category: "Beverages",
-    dietary: ["Vegan", "Gluten-Free"],
-    spice: "Mild",
-    image: signatureDishes,
-  },
-  {
-    id: 7,
-    title: "Golden Ricotta Gnocchi",
-    description: "Pillowy gnocchi with ricotta, basil, and warm herb butter.",
-    price: 26,
-    category: "Mains",
-    dietary: ["Vegetarian"],
-    spice: "Medium",
-    image: smallBites,
-  },
-  {
-    id: 8,
-    title: "Garden Harvest Bowl",
-    description: "Roasted vegetables, grains, chickpeas, and lemon tahini.",
-    price: 22,
-    category: "Salads",
-    dietary: ["Vegan"],
-    spice: "Mild",
-    image: signatureDishes,
-  },
-  {
-    id: 9,
-    title: "Berry Yogurt Smoothie",
-    description: "Blended berries, yogurt, mint, and a touch of honey.",
-    price: 10,
-    category: "Beverages",
-    dietary: ["Vegetarian", "Gluten-Free"],
-    spice: "Mild",
-    image: beverages,
-  },
-];
-
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -153,17 +55,23 @@ const FilterSection = ({ title, children }: FilterSectionProps) => (
 );
 
 const BuyOnlinePage = () => {
+  const dispatch = useAppDispatch();
+  const {
+    items: menuItems,
+    loading: foodLoading,
+    error: foodError,
+  } = useAppSelector((state) => state.food);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(100);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    { ...menuItems[0], quantity: 1 },
-    { ...menuItems[5], quantity: 2 },
-    { ...menuItems[2], quantity: 1 },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  useEffect(() => {
+    dispatch(getFoodItemsThunk());
+  }, [dispatch]);
 
   const filteredMenu = useMemo(() => {
     return menuItems.filter((item) => {
@@ -200,12 +108,12 @@ const BuyOnlinePage = () => {
     );
   };
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: FoodItem) => {
     setCartItems((current) => {
-      const found = current.find((cartItem) => cartItem.id === item.id);
+      const found = current.find((cartItem) => cartItem._id === item._id);
       if (found) {
         return current.map((cartItem) =>
-          cartItem.id === item.id
+          cartItem._id === item._id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem,
         );
@@ -214,18 +122,18 @@ const BuyOnlinePage = () => {
     });
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: string, delta: number) => {
     setCartItems((current) =>
       current.map((item) =>
-        item.id === id
+        item._id === id
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item,
       ),
     );
   };
 
-  const removeItem = (id: number) => {
-    setCartItems((current) => current.filter((item) => item.id !== id));
+  const removeItem = (id: string) => {
+    setCartItems((current) => current.filter((item) => item._id !== id));
   };
 
   const minPricePercent = minPrice;
@@ -396,7 +304,7 @@ const BuyOnlinePage = () => {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
             {filteredMenu.map((item) => (
               <article
-                key={item.id}
+                key={item._id}
                 className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
               >
                 <img
@@ -428,7 +336,19 @@ const BuyOnlinePage = () => {
               </article>
             ))}
 
-            {filteredMenu.length === 0 && (
+            {foodLoading && (
+              <div className="col-span-full rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
+                Loading menu items...
+              </div>
+            )}
+
+            {foodError && (
+              <div className="col-span-full rounded-lg border border-red-200 bg-white p-8 text-center text-red-600">
+                {foodError}
+              </div>
+            )}
+
+            {!foodLoading && !foodError && filteredMenu.length === 0 && (
               <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
                 No dishes match your current filters.
               </div>
@@ -448,7 +368,10 @@ const BuyOnlinePage = () => {
               </p>
             ) : (
               cartItems.map((item) => (
-                <div key={item.id} className="grid grid-cols-[64px_1fr] gap-4">
+                <div
+                  key={item._id}
+                  className="grid grid-cols-[64px_1fr] gap-4"
+                >
                   <img
                     src={item.image}
                     alt={item.title}
@@ -467,7 +390,7 @@ const BuyOnlinePage = () => {
                           <button
                             type="button"
                             aria-label={`Decrease ${item.title}`}
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateQuantity(item._id, -1)}
                             className="grid h-7 w-7 place-items-center text-[#111111]"
                           >
                             <Minus size={16} strokeWidth={2.8} />
@@ -478,7 +401,7 @@ const BuyOnlinePage = () => {
                           <button
                             type="button"
                             aria-label={`Increase ${item.title}`}
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item._id, 1)}
                             className="grid h-7 w-7 place-items-center text-[#111111]"
                           >
                             <Plus size={16} strokeWidth={2.8} />
@@ -486,7 +409,7 @@ const BuyOnlinePage = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item._id)}
                           aria-label={`Remove ${item.title}`}
                           className="grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff]"
                         >

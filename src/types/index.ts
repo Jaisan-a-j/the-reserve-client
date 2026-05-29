@@ -48,6 +48,17 @@ export interface UserBooking {
   status: string;
 }
 
+export interface FoodItem {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  dietary: string[];
+  spice: string;
+  image: string;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;
