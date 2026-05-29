@@ -4,7 +4,7 @@ import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logoutThunk } from "../../features/auth/authThunk";
 const Header = () => {
@@ -12,6 +12,7 @@ const Header = () => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { pathname, hash } = useLocation();
 
   const authAction = () => {
     if (user) {
@@ -29,17 +30,38 @@ const Header = () => {
     }
   };
 
+  const isActiveLink = (path?: string) => {
+    if (!path) return false;
+
+    if (path === "/buy-online") {
+      return pathname === "/buy-online";
+    }
+
+    if (path.startsWith("/#")) {
+      const targetHash = path.replace("/", "");
+      const currentHash = hash || "#home";
+      return pathname === "/" && currentHash === targetHash;
+    }
+
+    return pathname === path;
+  };
+
   return (
     <nav className="relative">
       <header className="fixed top-0 left-0 w-full h-16 z-70 flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
-        <div className="flex items-center">
+        <a
+          href="/#home"
+          onClick={(e) => handleLinkClick(e, "/#home")}
+          className="flex items-center"
+          aria-label="Go to home"
+        >
           <div className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden">
             <img src={logo} alt="Logo" className="w-7 h-7 object-contain" />
           </div>
           <span className="text-xl font-bold text-[#1e293b] tracking-tight">
             The Reserve
           </span>
-        </div>
+        </a>
 
         <div className="hidden lg:flex items-center gap-8">
           {navLinks.map((link: LinkTypes) => (
@@ -50,7 +72,7 @@ const Header = () => {
               }
               onClick={(e) => handleLinkClick(e, link.path)}
               className={`font-medium transition-colors hover:text-[#7c5dfa] ${
-                link.active ? "text-[#7c5dfa]" : "text-gray-700"
+                isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
             >
               {link.name}
@@ -59,7 +81,11 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <SecondaryButton path="#reservation" content="Book A Table" />
+          <SecondaryButton
+            path="/#reservation"
+            content="Book A Table"
+            onClick={(e) => handleLinkClick(e, "/#reservation")}
+          />
           <SecondaryButton
             onClick={authAction}
             content={user ? "Logout" : "Login"}
@@ -96,7 +122,7 @@ const Header = () => {
                 setIsOpen(false);
               }}
               className={`text-lg font-medium transition-colors ${
-                link.active ? "text-[#7c5dfa]" : "text-gray-700"
+                isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
             >
               {link.name}

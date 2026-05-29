@@ -1,10 +1,16 @@
+import type { MouseEventHandler } from "react";
 import type { ButtonTypes } from "../../types";
+
+type SecondaryButtonProps = Omit<ButtonTypes, "onClick"> & {
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
+};
+
 const SecondaryButton = ({
   path,
   content,
   className,
   onClick,
-}: ButtonTypes) => {
+}: SecondaryButtonProps) => {
   return (
     <a
       href={path}
