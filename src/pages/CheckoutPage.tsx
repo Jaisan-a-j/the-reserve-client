@@ -1,0 +1,465 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Clock,
+  CreditCard,
+  MapPin,
+  Minus,
+  Plus,
+  ReceiptText,
+  ShieldCheck,
+  ShoppingBag,
+  Truck,
+  UserRound,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
+import {
+  getCartItemsThunk,
+  updateCartItemQuantityThunk,
+} from "../features/cart/cartThunk";
+import { setCartItemQuantityLocal } from "../features/cart/cartSlice";
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+
+const CheckoutPage = () => {
+  const dispatch = useAppDispatch();
+  const { items: cartItems, loading, error } = useAppSelector(
+    (state) => state.cart,
+  );
+  const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.auth.user);
+  const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
+    "delivery",
+  );
+  const [payment, setPayment] = useState<"card" | "counter">("card");
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
+  useEffect(() => {
+    if (token && cartItems.length === 0) {
+      dispatch(getCartItemsThunk());
+    }
+  }, [cartItems.length, dispatch, token]);
+
+  const subtotal = useMemo(
+    () =>
+      cartItems.reduce(
+        (sum, item) => sum + item.food.price * item.quantity,
+        0,
+      ),
+    [cartItems],
+  );
+  const serviceFee = subtotal > 0 ? 4.99 : 0;
+  const deliveryFee = fulfillment === "delivery" && subtotal > 0 ? 6.5 : 0;
+  const tax = subtotal * 0.05;
+  const total = subtotal + serviceFee + deliveryFee + tax;
+
+  const updateQuantity = (foodId: string, quantity: number, delta: number) => {
+    const nextQuantity = Math.max(1, quantity + delta);
+
+    dispatch(setCartItemQuantityLocal({ foodId, quantity: nextQuantity }));
+    dispatch(updateCartItemQuantityThunk({ foodId, quantity: nextQuantity }));
+  };
+
+  if (orderPlaced) {
+    return (
+      <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-28 text-[#111111] sm:px-6 lg:px-10">
+        <section className="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-12">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#effaf3] text-[#16813a]">
+            <BadgeCheck size={34} strokeWidth={2.4} />
+          </div>
+          <h1 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">
+            Order confirmed
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-gray-600">
+            Your Reserve kitchen order has been received. We are preparing the
+            final details and will send updates to your contact information.
+          </p>
+          <div className="mt-8 grid gap-3 rounded-lg border border-gray-200 bg-[#fbfbfd] p-5 text-left sm:grid-cols-3">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Order total</p>
+              <p className="mt-1 text-lg font-bold">{formatCurrency(total)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Method</p>
+              <p className="mt-1 text-lg font-bold capitalize">
+                {fulfillment}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">ETA</p>
+              <p className="mt-1 text-lg font-bold">
+                {fulfillment === "delivery" ? "35-45 min" : "20-25 min"}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/buy-online"
+            className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
+          >
+            <ShoppingBag size={19} strokeWidth={2.4} />
+            Back to menu
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-24 text-[#111111] sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-[1440px]">
+        <Link
+          to="/buy-online"
+          className="inline-flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm transition-colors hover:border-[#825cff]"
+        >
+          <ArrowLeft size={18} strokeWidth={2.4} />
+          Back to menu
+        </Link>
+
+        <div className="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <section className="min-w-0">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#633df1]">
+                    Final checkout
+                  </p>
+                  <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                    Complete your order
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">
+                    Confirm your dining details, choose payment, and place your
+                    order with The Reserve.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-md border border-[#c9f0d4] bg-[#f2fbf5] px-4 py-3 text-sm font-semibold text-[#16813a]">
+                  <ShieldCheck size={18} strokeWidth={2.4} />
+                  Secure checkout
+                </div>
+              </div>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setFulfillment("delivery")}
+                  className={`rounded-lg border p-5 text-left transition-colors ${
+                    fulfillment === "delivery"
+                      ? "border-[#633df1] bg-[#f5f2ff]"
+                      : "border-gray-200 bg-white hover:border-[#825cff]"
+                  }`}
+                >
+                  <Truck className="text-[#633df1]" size={24} strokeWidth={2.3} />
+                  <span className="mt-4 block text-lg font-bold">Delivery</span>
+                  <span className="mt-1 block text-sm leading-6 text-gray-600">
+                    Arrives in 35-45 minutes with careful packaging.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFulfillment("pickup")}
+                  className={`rounded-lg border p-5 text-left transition-colors ${
+                    fulfillment === "pickup"
+                      ? "border-[#633df1] bg-[#f5f2ff]"
+                      : "border-gray-200 bg-white hover:border-[#825cff]"
+                  }`}
+                >
+                  <ShoppingBag
+                    className="text-[#633df1]"
+                    size={24}
+                    strokeWidth={2.3}
+                  />
+                  <span className="mt-4 block text-lg font-bold">Pickup</span>
+                  <span className="mt-1 block text-sm leading-6 text-gray-600">
+                    Ready at the counter in 20-25 minutes.
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-2">
+              <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-md bg-[#f5f2ff] text-[#633df1]">
+                    <UserRound size={20} strokeWidth={2.4} />
+                  </div>
+                  <h2 className="text-xl font-bold">Contact details</h2>
+                </div>
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="text-sm font-semibold">Full name</span>
+                    <input
+                      defaultValue={user?.fullName ?? ""}
+                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      placeholder="Your name"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-semibold">Email</span>
+                    <input
+                      defaultValue={user?.email ?? ""}
+                      type="email"
+                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      placeholder="you@example.com"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-semibold">Phone</span>
+                    <input
+                      type="tel"
+                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      placeholder="+1 555 012 3456"
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-md bg-[#f5f2ff] text-[#633df1]">
+                    <MapPin size={20} strokeWidth={2.4} />
+                  </div>
+                  <h2 className="text-xl font-bold">
+                    {fulfillment === "delivery" ? "Delivery address" : "Pickup"}
+                  </h2>
+                </div>
+                {fulfillment === "delivery" ? (
+                  <div className="space-y-4">
+                    <label className="block">
+                      <span className="text-sm font-semibold">Address</span>
+                      <input
+                        className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                        placeholder="Street address"
+                      />
+                    </label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-semibold">City</span>
+                        <input
+                          className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                          placeholder="City"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-semibold">ZIP code</span>
+                        <input
+                          className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                          placeholder="ZIP"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-gray-200 bg-[#fbfbfd] p-5">
+                    <p className="text-base font-bold">The Reserve Counter</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                      24 Grand Avenue, Downtown. Bring your confirmation name
+                      when you arrive.
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#633df1]">
+                      <Clock size={17} strokeWidth={2.4} />
+                      Ready in 20-25 minutes
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+
+            <section className="mt-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-md bg-[#f5f2ff] text-[#633df1]">
+                  <CreditCard size={20} strokeWidth={2.4} />
+                </div>
+                <h2 className="text-xl font-bold">Payment method</h2>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setPayment("card")}
+                  className={`rounded-lg border p-4 text-left transition-colors ${
+                    payment === "card"
+                      ? "border-[#633df1] bg-[#f5f2ff]"
+                      : "border-gray-200 bg-white hover:border-[#825cff]"
+                  }`}
+                >
+                  <span className="font-bold">Credit or debit card</span>
+                  <span className="mt-1 block text-sm text-gray-600">
+                    Pay securely before the kitchen starts.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPayment("counter")}
+                  className={`rounded-lg border p-4 text-left transition-colors ${
+                    payment === "counter"
+                      ? "border-[#633df1] bg-[#f5f2ff]"
+                      : "border-gray-200 bg-white hover:border-[#825cff]"
+                  }`}
+                >
+                  <span className="font-bold">Pay at counter</span>
+                  <span className="mt-1 block text-sm text-gray-600">
+                    Confirm now and pay when you receive the order.
+                  </span>
+                </button>
+              </div>
+              {payment === "card" && (
+                <div className="mt-5 grid gap-4 md:grid-cols-[1fr_150px_130px]">
+                  <input
+                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                    placeholder="Card number"
+                    inputMode="numeric"
+                  />
+                  <input
+                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                    placeholder="MM / YY"
+                    inputMode="numeric"
+                  />
+                  <input
+                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                    placeholder="CVC"
+                    inputMode="numeric"
+                  />
+                </div>
+              )}
+            </section>
+          </section>
+
+          <aside className="h-fit rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-md bg-[#f5f2ff] text-[#633df1]">
+                <ReceiptText size={20} strokeWidth={2.4} />
+              </div>
+              <h2 className="text-xl font-bold">Order summary</h2>
+            </div>
+
+            {error && (
+              <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 space-y-5">
+              {loading && cartItems.length === 0 ? (
+                <p className="text-base text-gray-500">Loading your cart...</p>
+              ) : cartItems.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center">
+                  <ShoppingBag
+                    className="mx-auto text-gray-400"
+                    size={34}
+                    strokeWidth={2.2}
+                  />
+                  <p className="mt-3 text-base font-semibold">
+                    Your basket is empty
+                  </p>
+                  <Link
+                    to="/buy-online"
+                    className="mt-4 inline-flex h-11 items-center justify-center rounded-md bg-[#633df1] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#5330dc]"
+                  >
+                    Add dishes
+                  </Link>
+                </div>
+              ) : (
+                cartItems.map((item) => (
+                  <div key={item._id} className="grid grid-cols-[64px_1fr] gap-4">
+                    <img
+                      src={item.food.image}
+                      alt={item.food.title}
+                      className="h-16 w-16 rounded-md object-cover"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="truncate text-base font-semibold">
+                          {item.food.title}
+                        </h3>
+                        <span className="shrink-0 text-sm font-bold">
+                          {formatCurrency(item.food.price * item.quantity)}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="text-sm text-gray-500">
+                          {formatCurrency(item.food.price)} each
+                        </span>
+                        <div className="flex h-9 items-center rounded-md border border-gray-200 bg-white px-2">
+                          <button
+                            type="button"
+                            aria-label={`Decrease ${item.food.title}`}
+                            onClick={() =>
+                              updateQuantity(item.food._id, item.quantity, -1)
+                            }
+                            className="grid h-7 w-7 place-items-center text-[#111111]"
+                          >
+                            <Minus size={15} strokeWidth={2.8} />
+                          </button>
+                          <span className="w-7 text-center text-sm font-bold">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            aria-label={`Increase ${item.food.title}`}
+                            onClick={() =>
+                              updateQuantity(item.food._id, item.quantity, 1)
+                            }
+                            className="grid h-7 w-7 place-items-center text-[#111111]"
+                          >
+                            <Plus size={15} strokeWidth={2.8} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-7 border-t border-gray-200 pt-5">
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-semibold">
+                    {formatCurrency(subtotal)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Service fee</span>
+                  <span className="font-semibold">
+                    {formatCurrency(serviceFee)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Delivery</span>
+                  <span className="font-semibold">
+                    {formatCurrency(deliveryFee)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-semibold">{formatCurrency(tax)}</span>
+                </div>
+              </div>
+              <div className="mt-5 flex items-center justify-between border-t border-gray-200 pt-5 text-2xl font-bold">
+                <span>Total</span>
+                <span>{formatCurrency(total)}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={cartItems.length === 0}
+              onClick={() => setOrderPlaced(true)}
+              className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <BadgeCheck size={20} strokeWidth={2.4} />
+              Place final order
+            </button>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default CheckoutPage;

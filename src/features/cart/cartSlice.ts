@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { CartItem } from "../../types";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { CartItem, FoodItem } from "../../types";
 import { logoutThunk } from "../auth/authThunk";
 import {
   addCartItemThunk,
@@ -26,6 +27,32 @@ const cartSlice = createSlice({
   reducers: {
     clearCartError: (state) => {
       state.error = null;
+    },
+    addCartItemLocal: (state, action: PayloadAction<FoodItem>) => {
+      const food = action.payload;
+      const item = state.items.find((cartItem) => cartItem.food._id === food._id);
+
+      if (item) {
+        item.quantity += 1;
+      } else {
+        state.items.push({
+          _id: food._id,
+          food,
+          quantity: 1,
+        });
+      }
+    },
+    setCartItemQuantityLocal: (
+      state,
+      action: PayloadAction<{ foodId: string; quantity: number }>,
+    ) => {
+      const item = state.items.find(
+        (cartItem) => cartItem.food._id === action.payload.foodId,
+      );
+
+      if (item) {
+        item.quantity = Math.max(1, action.payload.quantity);
+      }
     },
   },
   extraReducers: (builder) => {
@@ -73,6 +100,7 @@ const cartSlice = createSlice({
   },
 });
 
-export const { clearCartError } = cartSlice.actions;
+export const { addCartItemLocal, clearCartError, setCartItemQuantityLocal } =
+  cartSlice.actions;
 
 export default cartSlice.reducer;

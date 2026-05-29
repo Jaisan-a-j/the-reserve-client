@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -18,12 +19,16 @@ import {
 import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 import { getFoodItemsThunk } from "../features/food/foodThunk";
 import {
-  addCartItemThunk,
   getCartItemsThunk,
   removeCartItemThunk,
   updateCartItemQuantityThunk,
 } from "../features/cart/cartThunk";
+import {
+  addCartItemLocal,
+  setCartItemQuantityLocal,
+} from "../features/cart/cartSlice";
 import type { FoodItem } from "../types";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 type FilterSectionProps = {
   title: string;
@@ -39,6 +44,7 @@ const cuisineOptions = [
 ];
 const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
+const ITEMS_PER_PAGE = 9;
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -58,9 +64,15 @@ const FilterSection = ({ title, children }: FilterSectionProps) => (
 
 const BuyOnlinePage = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const cartSyncTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
   const {
     items: menuItems,
     loading: foodLoading,
+    loaded: foodLoaded,
     error: foodError,
   } = useAppSelector((state) => state.food);
   const {
@@ -70,7 +82,7 @@ const BuyOnlinePage = () => {
   } = useAppSelector((state) => state.cart);
   const token = useAppSelector((state) => state.auth.token);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(100);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
@@ -86,9 +98,24 @@ const BuyOnlinePage = () => {
     }
   }, [dispatch, token]);
 
+  const menuMaxPrice = useMemo(() => {
+    if (menuItems.length === 0) return 100;
+    return Math.max(...menuItems.map((item) => item.price), 100);
+  }, [menuItems]);
+  const activeMaxPrice = maxPrice ?? menuMaxPrice;
+
+  useEffect(() => {
+    return () => {
+      Object.values(cartSyncTimers.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+    };
+  }, []);
+
   const filteredMenu = useMemo(() => {
     return menuItems.filter((item) => {
-      const matchesPrice = item.price >= minPrice && item.price <= maxPrice;
+      const matchesPrice =
+        item.price >= minPrice && item.price <= activeMaxPrice;
       const matchesCuisine =
         selectedCuisines.length === 0 ||
         selectedCuisines.includes(item.category);
@@ -100,7 +127,47 @@ const BuyOnlinePage = () => {
 
       return matchesPrice && matchesCuisine && matchesDietary && matchesSpice;
     });
-  }, [minPrice, maxPrice, selectedCuisines, selectedDietary, selectedSpice]);
+  }, [
+    menuItems,
+    minPrice,
+    activeMaxPrice,
+    selectedCuisines,
+    selectedDietary,
+    selectedSpice,
+  ]);
+
+  const requestedPage = Number(searchParams.get("page") ?? 1);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredMenu.length / ITEMS_PER_PAGE),
+  );
+  const currentPage = Math.min(
+    Math.max(Number.isNaN(requestedPage) ? 1 : requestedPage, 1),
+    totalPages,
+  );
+  const paginatedMenu = filteredMenu.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  const updatePage = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), totalPages);
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (nextPage === 1) {
+      nextParams.delete("page");
+    } else {
+      nextParams.set("page", String(nextPage));
+    }
+
+    setSearchParams(nextParams);
+  };
+
+  const resetPage = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("page");
+    setSearchParams(nextParams);
+  };
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.food.price * item.quantity,
@@ -114,6 +181,7 @@ const BuyOnlinePage = () => {
     setState: Dispatch<SetStateAction<string[]>>,
     state: string[],
   ) => {
+    resetPage();
     setState(
       state.includes(value)
         ? state.filter((item) => item !== value)
@@ -121,25 +189,42 @@ const BuyOnlinePage = () => {
     );
   };
 
+  const syncCartItemAfterPause = (foodId: string, quantity: number) => {
+    const currentTimer = cartSyncTimers.current[foodId];
+
+    if (currentTimer) {
+      clearTimeout(currentTimer);
+    }
+
+    cartSyncTimers.current[foodId] = setTimeout(() => {
+      dispatch(updateCartItemQuantityThunk({ foodId, quantity }));
+      delete cartSyncTimers.current[foodId];
+    }, 1000);
+  };
+
   const addToCart = (item: FoodItem) => {
-    dispatch(addCartItemThunk({ foodId: item._id, quantity: 1 }));
+    const currentQuantity =
+      cartItems.find((cartItem) => cartItem.food._id === item._id)?.quantity ??
+      0;
+    const nextQuantity = currentQuantity + 1;
+
+    dispatch(addCartItemLocal(item));
+    syncCartItemAfterPause(item._id, nextQuantity);
   };
 
   const updateQuantity = (foodId: string, quantity: number, delta: number) => {
-    dispatch(
-      updateCartItemQuantityThunk({
-        foodId,
-        quantity: Math.max(1, quantity + delta),
-      }),
-    );
+    const nextQuantity = Math.max(1, quantity + delta);
+
+    dispatch(setCartItemQuantityLocal({ foodId, quantity: nextQuantity }));
+    syncCartItemAfterPause(foodId, nextQuantity);
   };
 
   const removeItem = (foodId: string) => {
     dispatch(removeCartItemThunk(foodId));
   };
 
-  const minPricePercent = minPrice;
-  const maxPricePercent = maxPrice;
+  const minPricePercent = (minPrice / menuMaxPrice) * 100;
+  const maxPricePercent = (activeMaxPrice / menuMaxPrice) * 100;
 
   const filterPanel = (
     <>
@@ -161,10 +246,14 @@ const BuyOnlinePage = () => {
             aria-label="Minimum price"
             type="range"
             min={0}
-            max={100}
+            max={menuMaxPrice}
             value={minPrice}
             onChange={(event) => {
-              const value = Math.min(Number(event.target.value), maxPrice);
+              const value = Math.min(
+                Number(event.target.value),
+                activeMaxPrice,
+              );
+              resetPage();
               setMinPrice(value);
             }}
             className="pointer-events-none absolute top-0 h-8 w-full appearance-none bg-transparent accent-[#7248ff] [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
@@ -173,10 +262,11 @@ const BuyOnlinePage = () => {
             aria-label="Maximum price"
             type="range"
             min={0}
-            max={100}
-            value={maxPrice}
+            max={menuMaxPrice}
+            value={activeMaxPrice}
             onChange={(event) => {
               const value = Math.max(Number(event.target.value), minPrice);
+              resetPage();
               setMaxPrice(value);
             }}
             className="pointer-events-none absolute top-0 h-8 w-full appearance-none bg-transparent accent-[#7248ff] [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
@@ -184,7 +274,7 @@ const BuyOnlinePage = () => {
         </div>
         <div className="mt-3 flex items-center justify-between text-base font-normal">
           <span>{formatCurrency(minPrice).replace(".00", "")}</span>
-          <span>{formatCurrency(maxPrice).replace(".00", "")}</span>
+          <span>{formatCurrency(activeMaxPrice).replace(".00", "")}</span>
         </div>
       </FilterSection>
 
@@ -304,7 +394,7 @@ const BuyOnlinePage = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-            {filteredMenu.map((item) => (
+            {paginatedMenu.map((item) => (
               <article
                 key={item._id}
                 className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
@@ -350,12 +440,55 @@ const BuyOnlinePage = () => {
               </div>
             )}
 
-            {!foodLoading && !foodError && filteredMenu.length === 0 && (
-              <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-                No dishes match your current filters.
-              </div>
-            )}
+            {foodLoaded &&
+              !foodLoading &&
+              !foodError &&
+              filteredMenu.length === 0 && (
+                <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
+                  No dishes match your current filters.
+                </div>
+              )}
           </div>
+
+          {filteredMenu.length > ITEMS_PER_PAGE && (
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => updatePage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-10 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition-colors hover:border-[#825cff] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                (page) => (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() => updatePage(page)}
+                    aria-current={page === currentPage ? "page" : undefined}
+                    className={`grid h-10 w-10 place-items-center rounded-md border text-sm font-semibold transition-colors ${
+                      page === currentPage
+                        ? "border-[#633df1] bg-[#633df1] text-white"
+                        : "border-gray-200 bg-white text-[#111111] hover:border-[#825cff]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
+
+              <button
+                type="button"
+                onClick={() => updatePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-10 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition-colors hover:border-[#825cff] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
 
         <aside className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm xl:sticky xl:top-24 xl:h-fit">
@@ -380,10 +513,7 @@ const BuyOnlinePage = () => {
               </p>
             ) : (
               cartItems.map((item) => (
-                <div
-                  key={item._id}
-                  className="grid grid-cols-[64px_1fr] gap-4"
-                >
+                <div key={item._id} className="grid grid-cols-[64px_1fr] gap-4">
                   <img
                     src={item.food.image}
                     alt={item.food.title}
@@ -403,11 +533,7 @@ const BuyOnlinePage = () => {
                             type="button"
                             aria-label={`Decrease ${item.food.title}`}
                             onClick={() =>
-                              updateQuantity(
-                                item.food._id,
-                                item.quantity,
-                                -1,
-                              )
+                              updateQuantity(item.food._id, item.quantity, -1)
                             }
                             className="grid h-7 w-7 place-items-center text-[#111111]"
                           >
@@ -464,6 +590,7 @@ const BuyOnlinePage = () => {
           <button
             type="button"
             disabled={cartItems.length === 0}
+            onClick={() => navigate("/checkout")}
             className="mt-9 flex h-14 w-full items-center justify-center gap-4 rounded-md bg-[#633df1] px-6 text-lg font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Proceed to Checkout

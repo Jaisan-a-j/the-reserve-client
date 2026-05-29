@@ -5,12 +5,14 @@ import { getFoodItemsThunk } from "./foodThunk";
 interface FoodState {
   items: FoodItem[];
   loading: boolean;
+  loaded: boolean;
   error: string | null;
 }
 
 const initialState: FoodState = {
   items: [],
   loading: false,
+  loaded: false,
   error: null,
 };
 
@@ -26,10 +28,12 @@ const foodSlice = createSlice({
       })
       .addCase(getFoodItemsThunk.fulfilled, (state, action) => {
         state.loading = false;
+        state.loaded = true;
         state.items = action.payload;
       })
       .addCase(getFoodItemsThunk.rejected, (state, action) => {
         state.loading = false;
+        state.loaded = true;
         state.error =
           (action.payload as string) || "Unable to load menu items.";
       });
