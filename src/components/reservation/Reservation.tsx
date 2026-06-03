@@ -5,6 +5,7 @@ import useReservation from "./useReservation";
 import ContactCard from "./ContactCard";
 import ActiveUserBooking from "./ActiveUserBooking";
 import Modal from "../common/Modal";
+import Alert from "../common/Alert";
 
 const Reservation = () => {
   const {
@@ -26,12 +27,22 @@ const Reservation = () => {
     handleInputChange,
     handleCancelBooking,
     handleSubmit,
+    clearBookingAlert,
   } = useReservation();
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [pendingCancelBookingId, setPendingCancelBookingId] = useState<
     string | null
   >(null);
+
+  const alertData =
+    fieldErrors.form !== undefined && fieldErrors.form !== ""
+      ? { type: "error" as const, message: fieldErrors.form }
+      : error
+        ? { type: "error" as const, message: error }
+        : success && message
+          ? { type: "success" as const, message }
+          : null;
 
   const openCancelConfirmation = (bookingId: string) => {
     setPendingCancelBookingId(bookingId);
@@ -57,6 +68,13 @@ const Reservation = () => {
       id="reservation"
       className="w-full px-6 py-14 md:py-24 bg-[#f8f7fb]"
     >
+      <Alert
+        isOpen={!!alertData}
+        type={alertData?.type ?? "success"}
+        message={alertData?.message ?? ""}
+        onClose={clearBookingAlert}
+      />
+
       <div className="text-center max-w-2xl mx-auto mb-12">
         <h2 className="text-2xl md:text-4xl font-bold tracking-tight text-[#2b2d42] leading-tight">
           Get in Touch to Reserve Your Table

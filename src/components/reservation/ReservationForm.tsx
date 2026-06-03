@@ -33,9 +33,6 @@ const ReservationForm = ({
   loadingSlots,
   availableTimeSlots,
   loading,
-  success,
-  error,
-  message,
   handleInputChange,
   handleSubmit,
   handleTimeSlotSelect,
@@ -45,17 +42,6 @@ const ReservationForm = ({
       className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
       onSubmit={handleSubmit}
     >
-      {fieldErrors.form && (
-        <div className="md:col-span-2 text-sm text-red-600">
-          {fieldErrors.form}
-        </div>
-      )}
-      {error && (
-        <div className="md:col-span-2 text-sm text-red-600">{error}</div>
-      )}
-      {success && message && (
-        <div className="md:col-span-2 text-sm text-green-600">{message}</div>
-      )}
       {formFields
         .filter((field) => field.name !== "time")
         .map((field: FormFieldMeta) => (

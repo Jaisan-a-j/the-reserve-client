@@ -204,6 +204,15 @@ export const useReservation = () => {
     return errors;
   };
 
+  const clearBookingAlert = () => {
+    setFieldErrors((prev) => {
+      const updated = { ...prev };
+      delete updated.form;
+      return updated;
+    });
+    dispatch(clearBookingMessage());
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFieldErrors({});
@@ -261,6 +270,7 @@ export const useReservation = () => {
     handleInputChange,
     handleCancelBooking,
     handleSubmit,
+    clearBookingAlert,
   };
 };
 
