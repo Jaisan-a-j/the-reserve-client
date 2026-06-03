@@ -1,8 +1,10 @@
 import { categoryData } from "../../constants/food";
 import type { CategoryTypes } from "../../types";
 import Button from "../common/Button";
+import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
+  const navigate = useNavigate();
   return (
     <section id="buyonline" className="px-6 py-12 md:py-20 bg-white">
       <div className="text-center mb-12 md:mb-16 max-w-2xl mx-auto">
@@ -37,7 +39,11 @@ const Categories = () => {
               <p className="text-gray-500 text-sm leading-relaxed mb-8 flex-grow">
                 {category.description}
               </p>
-              <Button content="Read More →" className="self-start" />
+              <Button
+                onClick={() => navigate("/buy-online")}
+                content="Read More →"
+                className="self-start"
+              />
             </div>
           </div>
         ))}

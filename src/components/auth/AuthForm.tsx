@@ -77,6 +77,9 @@ const AuthForm = () => {
 
       if (!formData.email.trim()) {
         errors.email = "Email is required";
+      } else if (!validateEmail(formData.email)) {
+        errors.email =
+          "Enter a valid email address with @ and a proper domain like .com or .org";
       }
 
       if (!formData.password.trim()) {
@@ -282,15 +285,6 @@ const AuthForm = () => {
               error={fieldErrors.otp}
             />
           </>
-        )}
-
-        {userExist && (
-          <a
-            href="#"
-            className="text-sm font-semibold text-[#7c5dfa] hover:underline flex justify-end"
-          >
-            Forgot Password?
-          </a>
         )}
 
         {errorMessage && (
