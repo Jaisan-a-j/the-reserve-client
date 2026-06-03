@@ -1,7 +1,10 @@
-﻿import BookingLimitPanel from "./BookingLimitPanel";
+﻿import { useState } from "react";
+import BookingLimitPanel from "./BookingLimitPanel";
 import ReservationForm from "./ReservationForm";
 import useReservation from "./useReservation";
 import ContactCard from "./ContactCard";
+import ActiveUserBooking from "./ActiveUserBooking";
+import Modal from "../common/Modal";
 
 const Reservation = () => {
   const {
@@ -11,7 +14,6 @@ const Reservation = () => {
     bookedSlots,
     loadingSlots,
     userBookings,
-    loadingBookings,
     cancelError,
     existingBookingForSelectedDate,
     hasReachedBookingLimit,
@@ -25,6 +27,30 @@ const Reservation = () => {
     handleCancelBooking,
     handleSubmit,
   } = useReservation();
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingCancelBookingId, setPendingCancelBookingId] = useState<
+    string | null
+  >(null);
+
+  const openCancelConfirmation = (bookingId: string) => {
+    setPendingCancelBookingId(bookingId);
+    setIsConfirmOpen(true);
+  };
+
+  const closeCancelConfirmation = () => {
+    setPendingCancelBookingId(null);
+    setIsConfirmOpen(false);
+  };
+
+  const confirmCancelBooking = async () => {
+    if (!pendingCancelBookingId) {
+      return;
+    }
+
+    await handleCancelBooking(pendingCancelBookingId);
+    closeCancelConfirmation();
+  };
 
   return (
     <section
@@ -48,12 +74,7 @@ const Reservation = () => {
           </h3>
 
           {hasReachedBookingLimit ? (
-            <BookingLimitPanel
-              bookings={userBookings}
-              loading={loadingBookings}
-              errorMessage={cancelError}
-              onCancel={handleCancelBooking}
-            />
+            <BookingLimitPanel errorMessage={cancelError} />
           ) : (
             <ReservationForm
               today={today}
@@ -111,6 +132,21 @@ const Reservation = () => {
           </div>
         </div>
       </div>
+
+      <ActiveUserBooking
+        bookings={userBookings}
+        onCancelClick={openCancelConfirmation}
+      />
+
+      <Modal
+        isOpen={isConfirmOpen}
+        title="Confirm Cancellation"
+        message="Are you sure you want to delete this booking?"
+        confirmLabel="Yes, delete"
+        cancelLabel="Keep booking"
+        onConfirm={confirmCancelBooking}
+        onClose={closeCancelConfirmation}
+      />
     </section>
   );
 };

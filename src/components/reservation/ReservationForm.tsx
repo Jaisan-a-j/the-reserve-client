@@ -124,7 +124,7 @@ const ReservationForm = ({
         <Button
           type="submit"
           content={loading ? "Booking..." : "Book a Reservation"}
-          disabled={loading}
+          disabled={loading || existingBookingForSelectedDate ? true : false}
         />
       </div>
     </form>
