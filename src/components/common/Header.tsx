@@ -4,7 +4,7 @@ import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logoutThunk } from "../../features/auth/authThunk";
 const Header = () => {
@@ -12,7 +12,7 @@ const Header = () => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { pathname, hash } = useLocation();
+  const [activeSection, setActiveSection] = useState<string>("home");
 
   const authAction = () => {
     if (user) {
@@ -23,27 +23,34 @@ const Header = () => {
   };
 
   const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>, path?: string) => {
+    e.preventDefault();
+
     if (path?.startsWith("/")) {
-      e.preventDefault();
       navigate(path);
       setIsOpen(false);
+    } else {
+      if (path) {
+        const targetElement = document.getElementById(path);
+        navigate(`/#${path}`);
+        setActiveSection(path);
+
+        if (targetElement) {
+          targetElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+          window.history.pushState(null, "", `#${path}`);
+          setIsOpen(false);
+        }
+      }
     }
   };
 
   const isActiveLink = (path?: string) => {
-    if (!path) return false;
-
-    if (path === "/buy-online") {
-      return pathname === "/buy-online";
+    if (path?.startsWith("/")) {
+      return location.pathname === path;
     }
-
-    if (path.startsWith("/#")) {
-      const targetHash = path.replace("/", "");
-      const currentHash = hash || "#home";
-      return pathname === "/" && currentHash === targetHash;
-    }
-
-    return pathname === path;
+    return location.pathname === "/" && activeSection === path;
   };
 
   return (
@@ -51,7 +58,7 @@ const Header = () => {
       <header className="fixed top-0 left-0 w-full h-16 z-70 flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
         <a
           href="/#home"
-          onClick={(e) => handleLinkClick(e, "/#home")}
+          onClick={(e) => handleLinkClick(e, "home")}
           className="flex items-center"
           aria-label="Go to home"
         >
@@ -67,9 +74,6 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={
-                link.path ?? `#${link.name.replace(/\s+/g, "").toLowerCase()}`
-              }
               onClick={(e) => handleLinkClick(e, link.path)}
               className={`font-medium transition-colors hover:text-[#7c5dfa] ${
                 isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
@@ -84,7 +88,7 @@ const Header = () => {
           <SecondaryButton
             path="/#reservation"
             content="Book A Table"
-            onClick={(e) => handleLinkClick(e, "/#reservation")}
+            onClick={(e) => handleLinkClick(e, "reservation")}
           />
           <SecondaryButton
             onClick={authAction}
@@ -114,9 +118,6 @@ const Header = () => {
           {navLinks.map((link: LinkTypes) => (
             <a
               key={link.name}
-              href={
-                link.path ?? `#${link.name.replace(/\s+/g, "").toLowerCase()}`
-              }
               onClick={(e) => {
                 handleLinkClick(e, link.path);
                 setIsOpen(false);
