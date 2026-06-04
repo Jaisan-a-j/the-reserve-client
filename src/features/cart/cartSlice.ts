@@ -30,7 +30,9 @@ const cartSlice = createSlice({
     },
     addCartItemLocal: (state, action: PayloadAction<FoodItem>) => {
       const food = action.payload;
-      const item = state.items.find((cartItem) => cartItem.food._id === food._id);
+      const item = state.items.find(
+        (cartItem) => cartItem.food._id === food._id,
+      );
 
       if (item) {
         item.quantity += 1;
@@ -83,9 +85,11 @@ const cartSlice = createSlice({
       })
       .addCase(updateCartItemQuantityThunk.fulfilled, (state, action) => {
         state.items = action.payload;
+        state.loading = false;
       })
       .addCase(updateCartItemQuantityThunk.rejected, (state, action) => {
         state.error = action.payload as string;
+        state.loading = false;
       })
       .addCase(removeCartItemThunk.fulfilled, (state, action) => {
         state.items = action.payload;

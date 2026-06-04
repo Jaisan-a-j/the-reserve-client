@@ -23,10 +23,6 @@ import {
   removeCartItemThunk,
   updateCartItemQuantityThunk,
 } from "../features/cart/cartThunk";
-import {
-  addCartItemLocal,
-  setCartItemQuantityLocal,
-} from "../features/cart/cartSlice";
 import type { FoodItem } from "../types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -81,6 +77,9 @@ const BuyOnlinePage = () => {
     error: cartError,
   } = useAppSelector((state) => state.cart);
   const token = useAppSelector((state) => state.auth.token);
+  const [updatingItemCounts, setUpdatingItemCounts] = useState<
+    Record<string, number>
+  >({});
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
@@ -105,10 +104,10 @@ const BuyOnlinePage = () => {
   const activeMaxPrice = maxPrice ?? menuMaxPrice;
 
   useEffect(() => {
+    const timers = cartSyncTimers.current;
+
     return () => {
-      Object.values(cartSyncTimers.current).forEach((timer) =>
-        clearTimeout(timer),
-      );
+      Object.values(timers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -176,6 +175,26 @@ const BuyOnlinePage = () => {
   const tax = subtotal * 0.05;
   const total = subtotal + tax;
 
+  const isItemUpdating = (foodId: string) =>
+    (updatingItemCounts[foodId] ?? 0) > 0;
+
+  const startUpdatingItem = (foodId: string) => {
+    setUpdatingItemCounts((prev) => ({
+      ...prev,
+      [foodId]: (prev[foodId] ?? 0) + 1,
+    }));
+  };
+
+  const stopUpdatingItem = (foodId: string) => {
+    setUpdatingItemCounts((prev) => {
+      const currentCount = prev[foodId] ?? 0;
+      return {
+        ...prev,
+        [foodId]: currentCount - 1,
+      };
+    });
+  };
+
   const toggleFilter = (
     value: string,
     setState: Dispatch<SetStateAction<string[]>>,
@@ -189,35 +208,25 @@ const BuyOnlinePage = () => {
     );
   };
 
-  const syncCartItemAfterPause = (foodId: string, quantity: number) => {
-    const currentTimer = cartSyncTimers.current[foodId];
-
-    if (currentTimer) {
-      clearTimeout(currentTimer);
-    }
-
-    cartSyncTimers.current[foodId] = setTimeout(() => {
-      dispatch(updateCartItemQuantityThunk({ foodId, quantity }));
-      delete cartSyncTimers.current[foodId];
-    }, 1000);
-  };
-
   const addToCart = (item: FoodItem) => {
     const currentQuantity =
       cartItems.find((cartItem) => cartItem.food._id === item._id)?.quantity ??
       0;
     const nextQuantity = currentQuantity + 1;
-    if (token) {
-      dispatch(addCartItemLocal(item));
-    }
-    syncCartItemAfterPause(item._id, nextQuantity);
+
+    startUpdatingItem(item._id);
+    dispatch(
+      updateCartItemQuantityThunk({ foodId: item._id, quantity: nextQuantity }),
+    ).finally(() => stopUpdatingItem(item._id));
   };
 
   const updateQuantity = (foodId: string, quantity: number, delta: number) => {
     const nextQuantity = Math.max(1, quantity + delta);
 
-    dispatch(setCartItemQuantityLocal({ foodId, quantity: nextQuantity }));
-    syncCartItemAfterPause(foodId, nextQuantity);
+    startUpdatingItem(foodId);
+    dispatch(
+      updateCartItemQuantityThunk({ foodId: foodId, quantity: nextQuantity }),
+    ).finally(() => stopUpdatingItem(foodId));
   };
 
   const removeItem = (foodId: string) => {
@@ -418,11 +427,18 @@ const BuyOnlinePage = () => {
                     </span>
                     <button
                       type="button"
+                      disabled={isItemUpdating(item._id)}
                       onClick={() => addToCart(item)}
                       className="inline-flex h-10 min-w-[142px] items-center justify-center gap-2 rounded-md bg-[#633df1] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
                     >
-                      Add to Cart
-                      <ShoppingCart size={16} strokeWidth={2.4} />
+                      {isItemUpdating(item._id) ? (
+                        "Adding..."
+                      ) : (
+                        <>
+                          Add to Cart
+                          <ShoppingCart size={16} strokeWidth={2.4} />
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -532,6 +548,7 @@ const BuyOnlinePage = () => {
                         <div className="flex h-10 items-center rounded-md border border-[#825cff] bg-white px-3">
                           <button
                             type="button"
+                            disabled={isItemUpdating(item.food._id)}
                             aria-label={`Decrease ${item.food.title}`}
                             onClick={() =>
                               updateQuantity(item.food._id, item.quantity, -1)
@@ -540,11 +557,23 @@ const BuyOnlinePage = () => {
                           >
                             <Minus size={16} strokeWidth={2.8} />
                           </button>
+
                           <span className="w-7 text-center text-base font-semibold">
-                            {item.quantity}
+                            {isItemUpdating(item.food._id) ? (
+                              <span
+                                className="mx-auto inline-flex h-5 w-5 items-center justify-center"
+                                aria-label="Updating quantity"
+                              >
+                                <span className="block h-3 w-3 rounded-full border-2 border-gray-200 border-t-[#633df1] border-r-[#633df1] animate-spin" />
+                              </span>
+                            ) : (
+                              item.quantity
+                            )}
                           </span>
+
                           <button
                             type="button"
+                            disabled={isItemUpdating(item.food._id)}
                             aria-label={`Increase ${item.food.title}`}
                             onClick={() =>
                               updateQuantity(item.food._id, item.quantity, 1)
