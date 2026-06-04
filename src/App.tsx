@@ -7,6 +7,8 @@ import CheckoutPage from "./pages/CheckoutPage";
 import MainLayout from "./layouts/MainLayout";
 import AuthPage from "./pages/AuthPage";
 import FullScreenLoader from "./components/common/FullScreenLoader";
+import { useAppDispatch } from "./hooks/reduxHooks";
+import { verifyUserThunk } from "./features/auth/authThunk";
 
 function App() {
   const authLoading = useAppSelector((state) => state.auth.loading);
@@ -19,6 +21,11 @@ function App() {
   const authVisibleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(verifyUserThunk());
+  }, []);
 
   useEffect(() => {
     if (authLoading) {

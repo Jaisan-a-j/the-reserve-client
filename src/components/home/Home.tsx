@@ -1,15 +1,7 @@
-import { useEffect } from "react";
 import home from "../../assets/home.jpeg";
 import { useAppSelector } from "../../hooks/reduxHooks";
-import { verifyUserThunk } from "../../features/auth/authThunk";
-import { useAppDispatch } from "../../hooks/reduxHooks";
 
 const Main = () => {
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    dispatch(verifyUserThunk());
-  }, []);
-
   const user = useAppSelector((state) => state.auth.user);
 
   return (

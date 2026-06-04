@@ -207,8 +207,9 @@ const BuyOnlinePage = () => {
       cartItems.find((cartItem) => cartItem.food._id === item._id)?.quantity ??
       0;
     const nextQuantity = currentQuantity + 1;
-
-    dispatch(addCartItemLocal(item));
+    if (token) {
+      dispatch(addCartItemLocal(item));
+    }
     syncCartItemAfterPause(item._id, nextQuantity);
   };
 

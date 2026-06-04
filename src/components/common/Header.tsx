@@ -75,7 +75,7 @@ const Header = () => {
             <a
               key={link.name}
               onClick={(e) => handleLinkClick(e, link.path)}
-              className={`font-medium transition-colors hover:text-[#7c5dfa] ${
+              className={`font-medium transition-colors hover:text-[#7c5dfa] cursor-pointer ${
                 isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
             >
@@ -122,7 +122,7 @@ const Header = () => {
                 handleLinkClick(e, link.path);
                 setIsOpen(false);
               }}
-              className={`text-lg font-medium transition-colors ${
+              className={`text-lg font-medium transition-colors cursor-pointer ${
                 isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
               }`}
             >
