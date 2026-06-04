@@ -83,6 +83,9 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      .addCase(updateCartItemQuantityThunk.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(updateCartItemQuantityThunk.fulfilled, (state, action) => {
         state.items = action.payload;
         state.loading = false;

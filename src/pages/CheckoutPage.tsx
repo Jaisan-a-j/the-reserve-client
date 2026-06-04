@@ -43,9 +43,9 @@ const CheckoutPage = () => {
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
     Record<string, number>
   >({});
-  const [formValues, setFormValues] = useState({
-    fullName: user?.fullName ?? "",
-    email: user?.email ?? "",
+  const [formValues, setFormValues] = useState(() => ({
+    fullName: "",
+    email: "",
     phone: "",
     address: "",
     city: "",
@@ -53,7 +53,7 @@ const CheckoutPage = () => {
     cardNumber: "",
     cardExpiry: "",
     cardCvc: "",
-  });
+  }));
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -61,6 +61,17 @@ const CheckoutPage = () => {
       dispatch(getCartItemsThunk());
     }
   }, [cartItems.length, dispatch, token]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormValues((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user.fullName || "",
+      email: prev.email || user.email || "",
+    }));
+  }, [user]);
 
   const subtotal = useMemo(
     () =>
@@ -111,6 +122,8 @@ const CheckoutPage = () => {
     }
     if (!formValues.phone.trim()) {
       errors.phone = "Phone is required";
+    } else if (!/^\d{10}$/.test(formValues.phone.replace(/\D/g, ""))) {
+      errors.phone = "Phone number must be exactly 10 digits";
     }
 
     if (fulfillment === "delivery") {
@@ -128,12 +141,26 @@ const CheckoutPage = () => {
     if (payment === "card") {
       if (!formValues.cardNumber.trim()) {
         errors.cardNumber = "Card number is required";
+      } else if (
+        !/^\d{13,19}$/.test(formValues.cardNumber.replace(/\s/g, ""))
+      ) {
+        errors.cardNumber = "Card number must be 13-19 digits";
       }
       if (!formValues.cardExpiry.trim()) {
         errors.cardExpiry = "Expiry date is required";
+      } else if (!/^\d{2}\/\d{2}$/.test(formValues.cardExpiry)) {
+        errors.cardExpiry = "Expiry date must be in MM/YY format";
+      } else {
+        const [month] = formValues.cardExpiry.split("/");
+        const monthNum = parseInt(month, 10);
+        if (monthNum < 1 || monthNum > 12) {
+          errors.cardExpiry = "Month must be between 01 and 12";
+        }
       }
       if (!formValues.cardCvc.trim()) {
         errors.cardCvc = "CVC is required";
+      } else if (!/^\d{3,4}$/.test(formValues.cardCvc)) {
+        errors.cardCvc = "CVC must be 3 or 4 digits";
       }
     }
 
@@ -287,7 +314,7 @@ const CheckoutPage = () => {
                   <label className="block">
                     <span className="text-sm font-semibold">Full name</span>
                     <input
-                      value={formValues.fullName || (user?.fullName ?? "")}
+                      value={formValues.fullName}
                       onChange={(e) =>
                         handleInputChange("fullName", e.target.value)
                       }
@@ -330,9 +357,10 @@ const CheckoutPage = () => {
                     <input
                       type="tel"
                       value={formValues.phone}
-                      onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
-                      }
+                      onChange={(e) => {
+                        const phoneValue = e.target.value.replace(/\D/g, "");
+                        handleInputChange("phone", phoneValue);
+                      }}
                       className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
                         formErrors.phone
                           ? "border-red-500 focus:border-red-500"
@@ -481,9 +509,10 @@ const CheckoutPage = () => {
                   <div>
                     <input
                       value={formValues.cardNumber}
-                      onChange={(e) =>
-                        handleInputChange("cardNumber", e.target.value)
-                      }
+                      onChange={(e) => {
+                        const cardValue = e.target.value.replace(/\D/g, "");
+                        handleInputChange("cardNumber", cardValue);
+                      }}
                       className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
                         formErrors.cardNumber
                           ? "border-red-500 focus:border-red-500"
@@ -491,6 +520,7 @@ const CheckoutPage = () => {
                       }`}
                       placeholder="Card number"
                       inputMode="numeric"
+                      maxLength={19}
                     />
                     {formErrors.cardNumber && (
                       <p className="mt-1 text-sm text-red-600">
@@ -502,16 +532,21 @@ const CheckoutPage = () => {
                     <div>
                       <input
                         value={formValues.cardExpiry}
-                        onChange={(e) =>
-                          handleInputChange("cardExpiry", e.target.value)
-                        }
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, "");
+                          if (value.length >= 2) {
+                            value = value.slice(0, 2) + "/" + value.slice(2, 4);
+                          }
+                          handleInputChange("cardExpiry", value);
+                        }}
                         className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
                           formErrors.cardExpiry
                             ? "border-red-500 focus:border-red-500"
                             : "border-gray-200"
                         }`}
-                        placeholder="MM / YY"
+                        placeholder="MM/YY"
                         inputMode="numeric"
+                        maxLength={5}
                       />
                       {formErrors.cardExpiry && (
                         <p className="mt-1 text-sm text-red-600">
@@ -522,9 +557,10 @@ const CheckoutPage = () => {
                     <div>
                       <input
                         value={formValues.cardCvc}
-                        onChange={(e) =>
-                          handleInputChange("cardCvc", e.target.value)
-                        }
+                        onChange={(e) => {
+                          const cvcValue = e.target.value.replace(/\D/g, "");
+                          handleInputChange("cardCvc", cvcValue);
+                        }}
                         className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
                           formErrors.cardCvc
                             ? "border-red-500 focus:border-red-500"
@@ -532,6 +568,7 @@ const CheckoutPage = () => {
                         }`}
                         placeholder="CVC"
                         inputMode="numeric"
+                        maxLength={4}
                       />
                       {formErrors.cardCvc && (
                         <p className="mt-1 text-sm text-red-600">

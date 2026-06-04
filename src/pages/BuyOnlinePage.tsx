@@ -407,7 +407,8 @@ const BuyOnlinePage = () => {
             {paginatedMenu.map((item) => (
               <article
                 key={item._id}
-                className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+                onClick={() => navigate(`/buy-online/${item._id}`)}
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#825cff]"
               >
                 <img
                   src={item.image}
@@ -428,7 +429,10 @@ const BuyOnlinePage = () => {
                     <button
                       type="button"
                       disabled={isItemUpdating(item._id)}
-                      onClick={() => addToCart(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(item);
+                      }}
                       className="inline-flex h-10 min-w-[142px] items-center justify-center gap-2 rounded-md bg-[#633df1] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
                     >
                       {isItemUpdating(item._id) ? (
