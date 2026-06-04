@@ -19,7 +19,6 @@ import {
   getCartItemsThunk,
   updateCartItemQuantityThunk,
 } from "../features/cart/cartThunk";
-import { setCartItemQuantityLocal } from "../features/cart/cartSlice";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -29,9 +28,11 @@ const formatCurrency = (value: number) =>
 
 const CheckoutPage = () => {
   const dispatch = useAppDispatch();
-  const { items: cartItems, loading, error } = useAppSelector(
-    (state) => state.cart,
-  );
+  const {
+    items: cartItems,
+    loading,
+    error,
+  } = useAppSelector((state) => state.cart);
   const token = useAppSelector((state) => state.auth.token);
   const user = useAppSelector((state) => state.auth.user);
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
@@ -39,6 +40,21 @@ const CheckoutPage = () => {
   );
   const [payment, setPayment] = useState<"card" | "counter">("card");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [updatingItemCounts, setUpdatingItemCounts] = useState<
+    Record<string, number>
+  >({});
+  const [formValues, setFormValues] = useState({
+    fullName: user?.fullName ?? "",
+    email: user?.email ?? "",
+    phone: "",
+    address: "",
+    city: "",
+    zipcode: "",
+    cardNumber: "",
+    cardExpiry: "",
+    cardCvc: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (token && cartItems.length === 0) {
@@ -48,10 +64,7 @@ const CheckoutPage = () => {
 
   const subtotal = useMemo(
     () =>
-      cartItems.reduce(
-        (sum, item) => sum + item.food.price * item.quantity,
-        0,
-      ),
+      cartItems.reduce((sum, item) => sum + item.food.price * item.quantity, 0),
     [cartItems],
   );
   const serviceFee = subtotal > 0 ? 4.99 : 0;
@@ -59,11 +72,90 @@ const CheckoutPage = () => {
   const tax = subtotal * 0.05;
   const total = subtotal + serviceFee + deliveryFee + tax;
 
+  const isItemUpdating = (foodId: string) =>
+    (updatingItemCounts[foodId] ?? 0) > 0;
+
+  const startUpdatingItem = (foodId: string) => {
+    setUpdatingItemCounts((prev) => ({
+      ...prev,
+      [foodId]: (prev[foodId] ?? 0) + 1,
+    }));
+  };
+
+  const stopUpdatingItem = (foodId: string) => {
+    setUpdatingItemCounts((prev) => {
+      const currentCount = prev[foodId] ?? 0;
+      return {
+        ...prev,
+        [foodId]: currentCount - 1,
+      };
+    });
+  };
+
   const updateQuantity = (foodId: string, quantity: number, delta: number) => {
     const nextQuantity = Math.max(1, quantity + delta);
+    startUpdatingItem(foodId);
+    dispatch(
+      updateCartItemQuantityThunk({ foodId, quantity: nextQuantity }),
+    ).finally(() => stopUpdatingItem(foodId));
+  };
 
-    dispatch(setCartItemQuantityLocal({ foodId, quantity: nextQuantity }));
-    dispatch(updateCartItemQuantityThunk({ foodId, quantity: nextQuantity }));
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formValues.fullName.trim()) {
+      errors.fullName = "Full name is required";
+    }
+    if (!formValues.email.trim()) {
+      errors.email = "Email is required";
+    }
+    if (!formValues.phone.trim()) {
+      errors.phone = "Phone is required";
+    }
+
+    if (fulfillment === "delivery") {
+      if (!formValues.address.trim()) {
+        errors.address = "Address is required";
+      }
+      if (!formValues.city.trim()) {
+        errors.city = "City is required";
+      }
+      if (!formValues.zipcode.trim()) {
+        errors.zipcode = "ZIP code is required";
+      }
+    }
+
+    if (payment === "card") {
+      if (!formValues.cardNumber.trim()) {
+        errors.cardNumber = "Card number is required";
+      }
+      if (!formValues.cardExpiry.trim()) {
+        errors.cardExpiry = "Expiry date is required";
+      }
+      if (!formValues.cardCvc.trim()) {
+        errors.cardCvc = "CVC is required";
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handlePlaceOrder = () => {
+    if (validateForm()) {
+      setOrderPlaced(true);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+    if (formErrors[field]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   if (orderPlaced) {
@@ -87,9 +179,7 @@ const CheckoutPage = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Method</p>
-              <p className="mt-1 text-lg font-bold capitalize">
-                {fulfillment}
-              </p>
+              <p className="mt-1 text-lg font-bold capitalize">{fulfillment}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">ETA</p>
@@ -153,7 +243,11 @@ const CheckoutPage = () => {
                       : "border-gray-200 bg-white hover:border-[#825cff]"
                   }`}
                 >
-                  <Truck className="text-[#633df1]" size={24} strokeWidth={2.3} />
+                  <Truck
+                    className="text-[#633df1]"
+                    size={24}
+                    strokeWidth={2.3}
+                  />
                   <span className="mt-4 block text-lg font-bold">Delivery</span>
                   <span className="mt-1 block text-sm leading-6 text-gray-600">
                     Arrives in 35-45 minutes with careful packaging.
@@ -193,27 +287,64 @@ const CheckoutPage = () => {
                   <label className="block">
                     <span className="text-sm font-semibold">Full name</span>
                     <input
-                      defaultValue={user?.fullName ?? ""}
-                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      value={formValues.fullName || (user?.fullName ?? "")}
+                      onChange={(e) =>
+                        handleInputChange("fullName", e.target.value)
+                      }
+                      className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                        formErrors.fullName
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-gray-200"
+                      }`}
                       placeholder="Your name"
                     />
+                    {formErrors.fullName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.fullName}
+                      </p>
+                    )}
                   </label>
                   <label className="block">
                     <span className="text-sm font-semibold">Email</span>
                     <input
-                      defaultValue={user?.email ?? ""}
+                      value={formValues.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
                       type="email"
-                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                        formErrors.email
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-gray-200"
+                      }`}
                       placeholder="you@example.com"
                     />
+                    {formErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.email}
+                      </p>
+                    )}
                   </label>
                   <label className="block">
                     <span className="text-sm font-semibold">Phone</span>
                     <input
                       type="tel"
-                      className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                      value={formValues.phone}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
+                      className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                        formErrors.phone
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-gray-200"
+                      }`}
                       placeholder="+1 555 012 3456"
                     />
+                    {formErrors.phone && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.phone}
+                      </p>
+                    )}
                   </label>
                 </div>
               </section>
@@ -232,24 +363,63 @@ const CheckoutPage = () => {
                     <label className="block">
                       <span className="text-sm font-semibold">Address</span>
                       <input
-                        className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                        value={formValues.address}
+                        onChange={(e) =>
+                          handleInputChange("address", e.target.value)
+                        }
+                        className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                          formErrors.address
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-200"
+                        }`}
                         placeholder="Street address"
                       />
+                      {formErrors.address && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.address}
+                        </p>
+                      )}
                     </label>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <label className="block">
                         <span className="text-sm font-semibold">City</span>
                         <input
-                          className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                          value={formValues.city}
+                          onChange={(e) =>
+                            handleInputChange("city", e.target.value)
+                          }
+                          className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                            formErrors.city
+                              ? "border-red-500 focus:border-red-500"
+                              : "border-gray-200"
+                          }`}
                           placeholder="City"
                         />
+                        {formErrors.city && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {formErrors.city}
+                          </p>
+                        )}
                       </label>
                       <label className="block">
                         <span className="text-sm font-semibold">ZIP code</span>
                         <input
-                          className="mt-2 h-12 w-full rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
+                          value={formValues.zipcode}
+                          onChange={(e) =>
+                            handleInputChange("zipcode", e.target.value)
+                          }
+                          className={`mt-2 h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                            formErrors.zipcode
+                              ? "border-red-500 focus:border-red-500"
+                              : "border-gray-200"
+                          }`}
                           placeholder="ZIP"
                         />
+                        {formErrors.zipcode && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {formErrors.zipcode}
+                          </p>
+                        )}
                       </label>
                     </div>
                   </div>
@@ -307,22 +477,69 @@ const CheckoutPage = () => {
                 </button>
               </div>
               {payment === "card" && (
-                <div className="mt-5 grid gap-4 md:grid-cols-[1fr_150px_130px]">
-                  <input
-                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
-                    placeholder="Card number"
-                    inputMode="numeric"
-                  />
-                  <input
-                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
-                    placeholder="MM / YY"
-                    inputMode="numeric"
-                  />
-                  <input
-                    className="h-12 rounded-md border border-gray-200 px-4 text-base outline-none transition-colors focus:border-[#633df1]"
-                    placeholder="CVC"
-                    inputMode="numeric"
-                  />
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <input
+                      value={formValues.cardNumber}
+                      onChange={(e) =>
+                        handleInputChange("cardNumber", e.target.value)
+                      }
+                      className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                        formErrors.cardNumber
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-gray-200"
+                      }`}
+                      placeholder="Card number"
+                      inputMode="numeric"
+                    />
+                    {formErrors.cardNumber && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.cardNumber}
+                      </p>
+                    )}
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-[150px_130px]">
+                    <div>
+                      <input
+                        value={formValues.cardExpiry}
+                        onChange={(e) =>
+                          handleInputChange("cardExpiry", e.target.value)
+                        }
+                        className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                          formErrors.cardExpiry
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-200"
+                        }`}
+                        placeholder="MM / YY"
+                        inputMode="numeric"
+                      />
+                      {formErrors.cardExpiry && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.cardExpiry}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        value={formValues.cardCvc}
+                        onChange={(e) =>
+                          handleInputChange("cardCvc", e.target.value)
+                        }
+                        className={`h-12 w-full rounded-md border px-4 text-base outline-none transition-colors focus:border-[#633df1] ${
+                          formErrors.cardCvc
+                            ? "border-red-500 focus:border-red-500"
+                            : "border-gray-200"
+                        }`}
+                        placeholder="CVC"
+                        inputMode="numeric"
+                      />
+                      {formErrors.cardCvc && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.cardCvc}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </section>
@@ -364,7 +581,10 @@ const CheckoutPage = () => {
                 </div>
               ) : (
                 cartItems.map((item) => (
-                  <div key={item._id} className="grid grid-cols-[64px_1fr] gap-4">
+                  <div
+                    key={item._id}
+                    className="grid grid-cols-[64px_1fr] gap-4"
+                  >
                     <img
                       src={item.food.image}
                       alt={item.food.title}
@@ -394,9 +614,19 @@ const CheckoutPage = () => {
                           >
                             <Minus size={15} strokeWidth={2.8} />
                           </button>
-                          <span className="w-7 text-center text-sm font-bold">
-                            {item.quantity}
-                          </span>
+
+                          {isItemUpdating(item.food._id) ? (
+                            <span
+                              className="mx-auto inline-flex h-5 w-7 items-center justify-center"
+                              aria-label="Updating quantity"
+                            >
+                              <span className="block h-3 w-3 rounded-full border-2 border-gray-200 border-t-[#633df1] border-r-[#633df1] animate-spin" />
+                            </span>
+                          ) : (
+                            <span className="w-7 text-center text-sm font-bold">
+                              {item.quantity}
+                            </span>
+                          )}
                           <button
                             type="button"
                             aria-label={`Increase ${item.food.title}`}
@@ -449,7 +679,7 @@ const CheckoutPage = () => {
             <button
               type="button"
               disabled={cartItems.length === 0}
-              onClick={() => setOrderPlaced(true)}
+              onClick={handlePlaceOrder}
               className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <BadgeCheck size={20} strokeWidth={2.4} />
