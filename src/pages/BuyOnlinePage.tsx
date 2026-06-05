@@ -408,21 +408,21 @@ const BuyOnlinePage = () => {
               <article
                 key={item._id}
                 onClick={() => navigate(`/buy-online/${item._id}`)}
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#825cff]"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#825cff] flex h-full flex-col"
               >
                 <img
                   src={item.image}
                   alt={item.title}
                   className="h-36 w-full rounded-md object-cover sm:h-40"
                 />
-                <div className="px-1 pt-4">
+                <div className="mt-4 flex flex-1 flex-col px-1">
                   <h3 className="text-base font-semibold leading-tight">
                     {item.title}
                   </h3>
                   <p className="mt-2 min-h-[48px] text-sm font-normal leading-6 text-[#111111]">
                     {item.description}
                   </p>
-                  <div className="mt-5 flex items-center justify-between gap-3">
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                     <span className="text-base font-semibold">
                       {formatCurrency(item.price)}
                     </span>
