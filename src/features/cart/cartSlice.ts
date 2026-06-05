@@ -28,6 +28,9 @@ const cartSlice = createSlice({
     clearCartError: (state) => {
       state.error = null;
     },
+    clearCartItems: (state) => {
+      state.items = [];
+    },
     addCartItemLocal: (state, action: PayloadAction<FoodItem>) => {
       const food = action.payload;
       const item = state.items.find(
@@ -107,7 +110,11 @@ const cartSlice = createSlice({
   },
 });
 
-export const { addCartItemLocal, clearCartError, setCartItemQuantityLocal } =
-  cartSlice.actions;
+export const {
+  addCartItemLocal,
+  clearCartError,
+  clearCartItems,
+  setCartItemQuantityLocal,
+} = cartSlice.actions;
 
 export default cartSlice.reducer;

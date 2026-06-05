@@ -19,6 +19,20 @@ import {
   getCartItemsThunk,
   updateCartItemQuantityThunk,
 } from "../features/cart/cartThunk";
+import { clearCartItems } from "../features/cart/cartSlice";
+import { createOrderThunk } from "../features/order/orderThunk";
+
+type PlacedOrderSummary = {
+  total: number;
+  fulfillment: "delivery" | "pickup";
+};
+
+type CreateOrderResponse = {
+  order?: {
+    total?: number;
+    fulfillment?: "delivery" | "pickup";
+  };
+};
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -33,6 +47,9 @@ const CheckoutPage = () => {
     loading,
     error,
   } = useAppSelector((state) => state.cart);
+  const { loading: orderLoading, error: orderError } = useAppSelector(
+    (state) => state.order,
+  );
   const token = useAppSelector((state) => state.auth.token);
   const user = useAppSelector((state) => state.auth.user);
   const [fulfillment, setFulfillment] = useState<"delivery" | "pickup">(
@@ -40,6 +57,8 @@ const CheckoutPage = () => {
   );
   const [payment, setPayment] = useState<"card" | "counter">("card");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placedOrderSummary, setPlacedOrderSummary] =
+    useState<PlacedOrderSummary | null>(null);
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
     Record<string, number>
   >({});
@@ -168,9 +187,51 @@ const CheckoutPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handlePlaceOrder = () => {
-    if (validateForm()) {
+  const handlePlaceOrder = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    if (!token) {
+      setFormErrors((prev) => ({
+        ...prev,
+        form: "Please login to place your order.",
+      }));
+      return;
+    }
+
+    try {
+      const response = (await dispatch(
+        createOrderThunk({
+          contact: {
+            fullName: formValues.fullName.trim(),
+            email: formValues.email.trim(),
+            phone: formValues.phone.trim(),
+          },
+          fulfillment,
+          deliveryAddress:
+            fulfillment === "delivery"
+              ? {
+                  address: formValues.address.trim(),
+                  city: formValues.city.trim(),
+                  zipCode: formValues.zipcode.trim(),
+                }
+              : undefined,
+          paymentMethod: payment,
+        }),
+      ).unwrap()) as CreateOrderResponse;
+
+      setPlacedOrderSummary({
+        total: response.order?.total ?? total,
+        fulfillment: response.order?.fulfillment ?? fulfillment,
+      });
+      dispatch(clearCartItems());
       setOrderPlaced(true);
+    } catch {
+      setFormErrors((prev) => ({
+        ...prev,
+        form: "Unable to place your order. Please try again.",
+      }));
     }
   };
 
@@ -186,6 +247,9 @@ const CheckoutPage = () => {
   };
 
   if (orderPlaced) {
+    const confirmedTotal = placedOrderSummary?.total ?? total;
+    const confirmedFulfillment = placedOrderSummary?.fulfillment ?? fulfillment;
+
     return (
       <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-28 text-[#111111] sm:px-6 lg:px-10">
         <section className="mx-auto max-w-3xl rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm sm:p-12">
@@ -202,16 +266,22 @@ const CheckoutPage = () => {
           <div className="mt-8 grid gap-3 rounded-lg border border-gray-200 bg-[#fbfbfd] p-5 text-left sm:grid-cols-3">
             <div>
               <p className="text-sm font-medium text-gray-500">Order total</p>
-              <p className="mt-1 text-lg font-bold">{formatCurrency(total)}</p>
+              <p className="mt-1 text-lg font-bold">
+                {formatCurrency(confirmedTotal)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Method</p>
-              <p className="mt-1 text-lg font-bold capitalize">{fulfillment}</p>
+              <p className="mt-1 text-lg font-bold capitalize">
+                {confirmedFulfillment}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">ETA</p>
               <p className="mt-1 text-lg font-bold">
-                {fulfillment === "delivery" ? "35-45 min" : "20-25 min"}
+                {confirmedFulfillment === "delivery"
+                  ? "35-45 min"
+                  : "20-25 min"}
               </p>
             </div>
           </div>
@@ -596,6 +666,12 @@ const CheckoutPage = () => {
               </div>
             )}
 
+            {(orderError || formErrors.form) && (
+              <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {orderError || formErrors.form}
+              </div>
+            )}
+
             <div className="mt-6 space-y-5">
               {loading && cartItems.length === 0 ? (
                 <p className="text-base text-gray-500">Loading your cart...</p>
@@ -715,12 +791,16 @@ const CheckoutPage = () => {
 
             <button
               type="button"
-              disabled={cartItems.length === 0}
+              disabled={cartItems.length === 0 || orderLoading}
               onClick={handlePlaceOrder}
               className="mt-7 flex h-14 w-full items-center justify-center gap-3 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <BadgeCheck size={20} strokeWidth={2.4} />
-              Place final order
+              {orderLoading ? (
+                <span className="h-5 w-5 rounded-full border-2 border-white/40 border-r-white border-t-white animate-spin" />
+              ) : (
+                <BadgeCheck size={20} strokeWidth={2.4} />
+              )}
+              {orderLoading ? "Placing order..." : "Place final order"}
             </button>
           </aside>
         </div>
