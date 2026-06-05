@@ -7,16 +7,18 @@ import SecondaryButton from "./SecondaryButton";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logoutThunk } from "../../features/auth/authThunk";
+import Modal from "./Modal";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string>("home");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const authAction = () => {
     if (user) {
-      dispatch(logoutThunk());
+      setIsConfirmOpen(true);
     } else {
       navigate("/auth");
     }
@@ -51,6 +53,16 @@ const Header = () => {
       return location.pathname === path;
     }
     return location.pathname === "/" && activeSection === path;
+  };
+
+  const confirmLogout = async () => {
+    navigate("/");
+    await dispatch(logoutThunk());
+    setIsConfirmOpen(false);
+  };
+
+  const cancelLogout = () => {
+    setIsConfirmOpen(false);
   };
 
   return (
@@ -144,6 +156,16 @@ const Header = () => {
           onClick={() => setIsOpen(false)}
         />
       )}
+
+      <Modal
+        isOpen={isConfirmOpen}
+        title="Confirm Logout"
+        message="Are you sure you want to Logout?"
+        confirmLabel="Yes, Logout"
+        cancelLabel="Cancel"
+        onConfirm={confirmLogout}
+        onClose={cancelLogout}
+      />
     </nav>
   );
 };
