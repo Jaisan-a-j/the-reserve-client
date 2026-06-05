@@ -80,6 +80,38 @@ export interface OrderInput {
   paymentMethod: "card" | "counter";
 }
 
+export interface UserOrderItem {
+  food: string;
+  title: string;
+  price: number;
+  image: string;
+  quantity: number;
+}
+
+export interface UserOrder {
+  _id: string;
+  items: UserOrderItem[];
+  contact: {
+    fullName: string;
+    email: string;
+    phone: string;
+  };
+  fulfillment: "delivery" | "pickup";
+  deliveryAddress?: {
+    address?: string;
+    city?: string;
+    zipCode?: string;
+  };
+  paymentMethod: "card" | "counter";
+  subtotal: number;
+  serviceFee: number;
+  deliveryFee: number;
+  tax: number;
+  total: number;
+  status: "pending" | "confirmed" | "cancelled";
+  createdAt: string;
+}
+
 export interface ButtonTypes {
   path?: string;
   content: string;

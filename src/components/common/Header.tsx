@@ -87,6 +87,12 @@ const Header = () => {
     setIsConfirmOpen(true);
   };
 
+  const openProfilePage = () => {
+    setIsProfileOpen(false);
+    setIsOpen(false);
+    navigate("/profile");
+  };
+
   return (
     <nav className="relative">
       <header className="fixed top-0 left-0 w-full h-16 z-70 flex items-center justify-between px-2 sm:px-4 md:px-8 lg:px-12 bg-white border-b border-gray-100 shadow-sm">
@@ -164,6 +170,7 @@ const Header = () => {
                   <div className="mt-2 space-y-1">
                     <button
                       type="button"
+                      onClick={openProfilePage}
                       className="flex h-10 w-full items-center gap-3 rounded-md bg-[#f5f2ff] px-3 text-left text-sm font-medium text-[#7c5dfa]"
                     >
                       <User size={16} strokeWidth={2.3} />
@@ -231,6 +238,7 @@ const Header = () => {
               <div className="space-y-2">
                 <button
                   type="button"
+                  onClick={openProfilePage}
                   className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-[#1e293b] transition-colors hover:text-[#7c5dfa]"
                 >
                   <User size={16} strokeWidth={2.3} />

@@ -5,6 +5,7 @@ import MainPage from "./pages/MainPage";
 import BuyOnlinePage from "./pages/BuyOnlinePage";
 import CheckoutPage from "./pages/CheckoutPage";
 import FoodDetailPage from "./pages/FoodDetailPage";
+import ProfilePage from "./pages/ProfilePage";
 import MainLayout from "./layouts/MainLayout";
 import AuthPage from "./pages/AuthPage";
 import FullScreenLoader from "./components/common/FullScreenLoader";
@@ -92,6 +93,7 @@ function App() {
             <Route path="/buy-online" element={<BuyOnlinePage />} />
             <Route path="/buy-online/:foodId" element={<FoodDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="/auth" element={<AuthPage />} />
         </Routes>

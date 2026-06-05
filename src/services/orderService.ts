@@ -16,3 +16,13 @@ export const createOrder = async (orderData: OrderInput, token: string) => {
 
   return response.data;
 };
+
+export const getMyOrders = async (token: string) => {
+  const response = await API.get("/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};

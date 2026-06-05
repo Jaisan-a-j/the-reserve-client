@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import type { OrderInput } from "../../types";
-import { createOrder } from "../../services/orderService";
+import { createOrder, getMyOrders } from "../../services/orderService";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error && typeof error === "object" && "response" in error) {
@@ -26,6 +26,25 @@ export const createOrderThunk = createAsyncThunk(
     } catch (error: unknown) {
       return thunkAPI.rejectWithValue(
         getErrorMessage(error, "Unable to place your order."),
+      );
+    }
+  },
+);
+
+export const getMyOrdersThunk = createAsyncThunk(
+  "order/getMyOrders",
+  async (_, thunkAPI) => {
+    const token = (thunkAPI.getState() as RootState).auth.token;
+
+    if (!token) {
+      return thunkAPI.rejectWithValue("Please login to view your orders.");
+    }
+
+    try {
+      return await getMyOrders(token);
+    } catch (error: unknown) {
+      return thunkAPI.rejectWithValue(
+        getErrorMessage(error, "Unable to load your orders."),
       );
     }
   },
