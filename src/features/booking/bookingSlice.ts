@@ -38,7 +38,7 @@ const bookingSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.message =
-          "Booking request sent successfully. We will confirm it shortly.";
+          "Your table is reserved! A confirmation email has already been sent to you.";
       })
       .addCase(createBookingThunk.rejected, (state, action) => {
         state.loading = false;
