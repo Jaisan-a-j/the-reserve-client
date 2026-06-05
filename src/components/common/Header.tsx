@@ -1,5 +1,5 @@
-import { useState, type MouseEvent } from "react";
-import { Menu, X } from "lucide-react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { LogOut, Menu, User, UserRound, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
@@ -15,10 +15,26 @@ const Header = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string>("home");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const closeProfileMenu = (event: globalThis.MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeProfileMenu);
+    return () => document.removeEventListener("mousedown", closeProfileMenu);
+  }, []);
 
   const authAction = () => {
     if (user) {
-      setIsConfirmOpen(true);
+      setIsProfileOpen((current) => !current);
     } else {
       navigate("/auth");
     }
@@ -58,11 +74,17 @@ const Header = () => {
   const confirmLogout = async () => {
     navigate("/");
     await dispatch(logoutThunk());
+    setIsProfileOpen(false);
     setIsConfirmOpen(false);
   };
 
   const cancelLogout = () => {
     setIsConfirmOpen(false);
+  };
+
+  const openLogoutConfirm = () => {
+    setIsProfileOpen(false);
+    setIsConfirmOpen(true);
   };
 
   return (
@@ -102,11 +124,73 @@ const Header = () => {
             content="Book A Table"
             onClick={(e) => handleLinkClick(e, "reservation")}
           />
-          <SecondaryButton
-            onClick={authAction}
-            content={user ? "Logout" : "Login"}
-            className="hidden lg:block cursor-pointer"
-          />
+
+          <div className="relative hidden lg:block" ref={profileMenuRef}>
+            {user ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={authAction}
+                    aria-label="Open profile menu"
+                    aria-expanded={isProfileOpen}
+                    className="grid h-10 w-10 place-items-center rounded-full border border-[#ded7ff] bg-[#f5f2ff] text-[#7c5dfa] transition-colors hover:border-[#7c5dfa]"
+                  >
+                    <UserRound size={19} strokeWidth={2.4} />
+                  </button>
+                </div>
+
+                <div
+                  className={`absolute right-0 top-12 w-60 rounded-md border border-gray-100 bg-white p-3 shadow-xl transition-all duration-200 ${
+                    isProfileOpen
+                      ? "pointer-events-auto translate-y-0 opacity-100"
+                      : "pointer-events-none -translate-y-2 opacity-0"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 px-2 py-2">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f5f2ff] text-[#7c5dfa]">
+                      <UserRound size={20} strokeWidth={2.4} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[#1e293b]">
+                        {user.fullName}
+                      </p>
+                      <p className="truncate text-xs text-gray-500">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 space-y-1">
+                    <button
+                      type="button"
+                      className="flex h-10 w-full items-center gap-3 rounded-md bg-[#f5f2ff] px-3 text-left text-sm font-medium text-[#7c5dfa]"
+                    >
+                      <User size={16} strokeWidth={2.3} />
+                      My Account
+                    </button>
+                  </div>
+
+                  <div className="mt-3 border-t border-gray-100 pt-3">
+                    <button
+                      type="button"
+                      onClick={openLogoutConfirm}
+                      className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+                    >
+                      <LogOut size={16} strokeWidth={2.3} />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <SecondaryButton
+                onClick={authAction}
+                content="Login"
+                className="cursor-pointer"
+              />
+            )}
+          </div>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -142,11 +226,39 @@ const Header = () => {
             </a>
           ))}
 
-          <SecondaryButton
-            onClick={authAction}
-            content={user ? "Logout" : "Login"}
-            className="lg:hidden self-start"
-          />
+          {user ? (
+            <div className="border-t border-gray-100 pt-4">
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-[#1e293b] transition-colors hover:text-[#7c5dfa]"
+                >
+                  <User size={16} strokeWidth={2.3} />
+                  My Account
+                </button>
+              </div>
+
+              <div className="mt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    openLogoutConfirm();
+                  }}
+                  className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+                >
+                  <LogOut size={16} strokeWidth={2.3} />
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <SecondaryButton
+              onClick={authAction}
+              content="Login"
+              className="lg:hidden self-start"
+            />
+          )}
         </nav>
       </div>
 

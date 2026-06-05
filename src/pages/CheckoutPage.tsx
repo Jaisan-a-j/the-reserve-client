@@ -260,8 +260,9 @@ const CheckoutPage = () => {
             Order confirmed
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-gray-600">
-            Your Reserve kitchen order has been received. We are preparing the
-            final details and will send updates to your contact information.
+            Thank you, your order is confirmed. We have sent a confirmation
+            email with your summary. The Reserve kitchen is now crafting your
+            meal, and we will update you as it progresses.
           </p>
           <div className="mt-8 grid gap-3 rounded-lg border border-gray-200 bg-[#fbfbfd] p-5 text-left sm:grid-cols-3">
             <div>
@@ -277,12 +278,17 @@ const CheckoutPage = () => {
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">ETA</p>
-              <p className="mt-1 text-lg font-bold">
-                {confirmedFulfillment === "delivery"
-                  ? "35-45 min"
-                  : "20-25 min"}
-              </p>
+              {confirmedFulfillment === "delivery" ? (
+                <>
+                  <p className="text-sm font-medium text-gray-500">ETA</p>
+                  <p className="mt-1 text-lg font-bold">35-45 min</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-gray-500">Ready in</p>
+                  <p className="mt-1 text-lg font-bold">20-25 min</p>
+                </>
+              )}
             </div>
           </div>
           <Link
