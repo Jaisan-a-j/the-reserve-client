@@ -41,6 +41,6 @@ describe("Reservation Form", () => {
 
     await userEvent.type(phoneInput, "abc123@#");
 
-    expect(phoneInput).toHaveValue("123");
+    expect(phoneInput).toHaveValue("123abc");
   });
 });

@@ -12,7 +12,7 @@ const Main = () => {
       <div className="flex flex-col items-center justify-center sm:mt-[55px]">
         <div className="flex justify-center">
           <div className="border border-gray-300 rounded-full px-4 py-2 text-sm text-gray-600 flex items-center gap-2">
-            <span>Serving Food Lovers Since 2017</span>
+            <span>Serving Food Lovers Since 2019</span>
             <span>❤️</span>
           </div>
         </div>
