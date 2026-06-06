@@ -26,7 +26,7 @@ jobs:
       - name: Run Vitest Unit & Integration Tests
         run: npm run test:ci
 
-      - name: 'notify vercel'
-        uses: 'vercel/repository-dispatch/actions/status@v1'
+      - name: "notify vercel"
+        uses: "vercel/repository-dispatch/actions/status@v1"
         with:
-          name: Vercel - the-reserve-client-h9aj: lint
+          name: Vercel - the-reserve-client-h9aj
