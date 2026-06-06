@@ -3,8 +3,10 @@ name: CI Test Suite
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
+
+permissions:
+  contents: read
+  statuses: write
 
 jobs:
   run-tests:
