@@ -25,6 +25,7 @@ import {
 } from "../features/cart/cartThunk";
 import type { FoodItem } from "../types";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Alert from "../components/common/Alert";
 
 type FilterSectionProps = {
   title: string;
@@ -77,6 +78,7 @@ const BuyOnlinePage = () => {
     error: cartError,
   } = useAppSelector((state) => state.cart);
   const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.auth.user);
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
     Record<string, number>
   >({});
@@ -86,6 +88,7 @@ const BuyOnlinePage = () => {
   const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
   const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [alertLogin, setAlertLogin] = useState(false);
 
   useEffect(() => {
     dispatch(getFoodItemsThunk());
@@ -209,6 +212,10 @@ const BuyOnlinePage = () => {
   };
 
   const addToCart = (item: FoodItem) => {
+    if (!user) {
+      setAlertLogin(true);
+      return;
+    }
     const currentQuantity =
       cartItems.find((cartItem) => cartItem.food._id === item._id)?.quantity ??
       0;
@@ -631,6 +638,13 @@ const BuyOnlinePage = () => {
             <ArrowRight size={21} strokeWidth={2.5} />
           </button>
         </aside>
+        <Alert
+          isOpen={alertLogin}
+          message="Please login to Add to Cart"
+          onClose={() => {
+            setAlertLogin(false);
+          }}
+        />
       </div>
     </main>
   );

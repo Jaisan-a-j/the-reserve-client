@@ -192,7 +192,7 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!token) {
+    if (!user) {
       setFormErrors((prev) => ({
         ...prev,
         form: "Please login to place your order.",
@@ -657,7 +657,6 @@ const CheckoutPage = () => {
               )}
             </section>
           </section>
-
           <aside className="h-fit rounded-lg border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
             <div className="flex items-center gap-3">
               <div className="grid h-10 w-10 place-items-center rounded-md bg-[#f5f2ff] text-[#633df1]">
