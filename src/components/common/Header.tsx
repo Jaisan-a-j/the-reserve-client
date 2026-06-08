@@ -10,8 +10,9 @@ import { logoutThunk } from "../../features/auth/authThunk";
 import Modal from "./Modal";
 import { useNavigation } from "../../hooks/useNavigation";
 import { useNavigationContext } from "../../providers/NavigationProvider";
-import { LogOut, User, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import ProfileDropdown from "../header/ProfileDropdown";
+import MobileMenu from "../header/MobileMenu";
 const Header = () => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
@@ -156,70 +157,17 @@ const Header = () => {
         </div>
       </header>
 
-      <div
-        className={`lg:hidden fixed left-0 w-full bg-white z-60 border-b border-gray-100 transition-all duration-300 ease-in-out shadow-xl overflow-hidden ${
-          isOpen ? "top-16 opacity-100 py-8" : "-top-full opacity-0 py-0"
-        }`}
-      >
-        <nav className="flex flex-col px-6 gap-6">
-          {navLinks.map((link: LinkTypes) => (
-            <a
-              key={link.name}
-              onClick={(e) => {
-                handleLinkClick(e, link.path);
-                setIsOpen(false);
-              }}
-              className={`text-lg font-medium transition-colors cursor-pointer ${
-                isActiveLink(link.path) ? "text-[#7c5dfa]" : "text-gray-700"
-              }`}
-            >
-              {link.name}
-            </a>
-          ))}
-
-          {user ? (
-            <div className="border-t border-gray-100 pt-4">
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={openProfilePage}
-                  className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-[#1e293b] transition-colors hover:text-[#7c5dfa]"
-                >
-                  <User size={16} strokeWidth={2.3} />
-                  My Account
-                </button>
-              </div>
-
-              <div className="mt-2 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    openLogoutConfirm();
-                  }}
-                  className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <LogOut size={16} strokeWidth={2.3} />
-                  Logout
-                </button>
-              </div>
-            </div>
-          ) : (
-            <SecondaryButton
-              onClick={authAction}
-              content="Login"
-              className="lg:hidden self-start"
-            />
-          )}
-        </nav>
-      </div>
-
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/20 z-50"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      <MobileMenu
+        isOpen={isOpen}
+        navLinks={navLinks}
+        isActiveLink={isActiveLink}
+        handleLinkClick={handleLinkClick}
+        user={user}
+        openProfilePage={openProfilePage}
+        openLogoutConfirm={openLogoutConfirm}
+        setIsOpen={setIsOpen}
+        authAction={authAction}
+      />
 
       <Modal
         isOpen={isConfirmOpen}
