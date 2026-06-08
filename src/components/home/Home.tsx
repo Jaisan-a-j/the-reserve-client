@@ -1,7 +1,7 @@
 import home from "../../assets/home.jpeg";
 import { useAppSelector } from "../../hooks/reduxHooks";
 import { motion } from "framer-motion";
-import TypingText from "./TypingText";
+import RotatingText from "./RotatingText";
 
 const Main = () => {
   const user = useAppSelector((state) => state.auth.user);
@@ -19,38 +19,79 @@ const Main = () => {
           </div>
         </div>
 
-        <div className="mt-8 text-center xl:w-[60%]">
+        <div className="relative mt-8 text-center xl:w-[60%]">
+          <motion.div
+            animate={{
+              scale: [1, 1.15, 1],
+              x: [0, 20, 0],
+              y: [0, -10, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 rounded-full bg-purple-400/20 blur-3xl pointer-events-none"
+          />
+
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-3xl xl:text-5xl font-bold tracking-tight text-[#2b2d42] leading-tight"
+            transition={{
+              duration: 0.8,
+              ease: "easeOut",
+            }}
+            className="relative text-3xl xl:text-6xl font-bold tracking-tight text-[#2b2d42] leading-tight"
           >
-            Savor Every Bite. <TypingText text="savor every moment." />
+            Savor Every Bite. <RotatingText />
           </motion.h1>
 
-          <p className="mt-6 text-gray-600 text-lg leading-8">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{
+              delay: 0.4,
+              duration: 0.8,
+            }}
+            className="mt-6 text-gray-600 text-lg leading-8"
+          >
             Welcome <span className="text-3xl font-bold">{user?.fullName}</span>{" "}
             to a dining experience where flavor, freshness, and hospitality come
             together. Whether it's your first visit or your hundredth, every
             plate is made to impress.
-          </p>
+          </motion.p>
         </div>
 
-        <a
+        <motion.a
           href="#buyonline"
-          className="bg-linear-to-r mt-8 from-purple-500 to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md transition-all duration-300"
+          animate={{
+            y: [0, -4, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="bg-linear-to-r mt-8 from-purple-500 to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md"
         >
           Experience the Flavor →
-        </a>
+        </motion.a>
       </div>
 
       <div className="mt-16 xl:mt-28">
-        <img
-          src={home}
-          alt="Restaurant Food"
-          className="w-full h-[420px] object-cover rounded-[2rem]"
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 80 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="mt-16 xl:mt-28"
+        >
+          <img
+            src={home}
+            alt="Restaurant Food"
+            className="w-full h-[420px] object-cover rounded-[2rem]"
+          />
+        </motion.div>
       </div>
     </section>
   );
