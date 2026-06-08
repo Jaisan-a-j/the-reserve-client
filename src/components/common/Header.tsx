@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogOut, Menu, User, UserRound, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
@@ -8,12 +8,12 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { logoutThunk } from "../../features/auth/authThunk";
 import Modal from "./Modal";
+import { useNavigation } from "../../hooks/useNavigation";
+import { useNavigationContext } from "../../providers/NavigationProvider";
 const Header = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<string>("home");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -32,35 +32,14 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", closeProfileMenu);
   }, []);
 
+  const { isOpen, setIsOpen, handleLinkClick } = useNavigation();
+  const { activeSection } = useNavigationContext();
+
   const authAction = () => {
     if (user) {
       setIsProfileOpen((current) => !current);
     } else {
       navigate("/auth");
-    }
-  };
-
-  const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>, path?: string) => {
-    e.preventDefault();
-
-    if (path?.startsWith("/")) {
-      navigate(path);
-      setIsOpen(false);
-    } else {
-      if (path) {
-        const targetElement = document.getElementById(path);
-        navigate(`/#${path}`);
-        setActiveSection(path);
-
-        if (targetElement) {
-          targetElement.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-          window.history.pushState(null, "", `#${path}`);
-          setIsOpen(false);
-        }
-      }
     }
   };
 

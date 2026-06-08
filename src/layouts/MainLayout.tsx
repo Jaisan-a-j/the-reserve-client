@@ -2,6 +2,7 @@ import Header from "../components/common/Header";
 import { Outlet, useLocation } from "react-router-dom";
 import Footer from "../components/common/Footer";
 import { useEffect } from "react";
+import { NavigationProvider } from "../providers/NavigationProvider";
 
 const HEADER_OFFSET = 64;
 
@@ -33,9 +34,11 @@ const MainLayout = () => {
 
   return (
     <>
-      <Header />
-      <Outlet />
-      <Footer />
+      <NavigationProvider>
+        <Header />
+        <Outlet />
+        <Footer />
+      </NavigationProvider>
     </>
   );
 };

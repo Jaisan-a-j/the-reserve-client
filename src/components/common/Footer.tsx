@@ -2,8 +2,11 @@ import logo from "../../assets/icon.jpeg";
 import { Gamepad2, GitMerge, X } from "lucide-react";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
+import { useNavigation } from "../../hooks/useNavigation";
 
 const Footer = () => {
+  const { handleLinkClick } = useNavigation();
+
   return (
     <footer className="w-full bg-[#f5f5f5] py-6 px-4 flex flex-col items-center justify-center">
       <div className="flex items-center gap-3 mb-5">
@@ -20,10 +23,7 @@ const Footer = () => {
           {navLinks.map((links: LinkTypes) => (
             <li key={links.name}>
               <a
-                href={
-                  links.path ??
-                  `#${links.name.replace(/\s+/g, "").toLowerCase()}`
-                }
+                onClick={(e) => handleLinkClick(e, links.path)}
                 className="hover:text-black transition-colors"
               >
                 {links.name}
