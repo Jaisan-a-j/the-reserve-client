@@ -1,78 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
 import type { LinkTypes } from "../../types";
 import SecondaryButton from "./SecondaryButton";
-import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { logoutThunk } from "../../features/auth/authThunk";
+import { useAppSelector } from "../../hooks/reduxHooks";
 import Modal from "./Modal";
 import { useNavigation } from "../../hooks/useNavigation";
 import { useNavigationContext } from "../../providers/NavigationProvider";
 import { UserRound } from "lucide-react";
 import ProfileDropdown from "../header/ProfileDropdown";
 import MobileMenu from "../header/MobileMenu";
+import useAuthMenu from "../../hooks/useAuthMenu";
 const Header = () => {
   const user = useAppSelector((state) => state.auth.user);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const {
+    isConfirmOpen,
+    isProfileOpen,
+    authAction,
+    confirmLogout,
+    cancelLogout,
+    openLogoutConfirm,
+    openProfilePage,
+  } = useAuthMenu();
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const closeProfileMenu = (event: globalThis.MouseEvent) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsProfileOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", closeProfileMenu);
-    return () => document.removeEventListener("mousedown", closeProfileMenu);
-  }, []);
 
   const { isOpen, setIsOpen, handleLinkClick } = useNavigation();
   const { activeSection } = useNavigationContext();
-
-  const authAction = () => {
-    if (user) {
-      setIsProfileOpen((current) => !current);
-    } else {
-      navigate("/auth");
-    }
-  };
 
   const isActiveLink = (path?: string) => {
     if (path?.startsWith("/")) {
       return location.pathname === path;
     }
     return location.pathname === "/" && activeSection === path;
-  };
-
-  const confirmLogout = async () => {
-    navigate("/");
-    await dispatch(logoutThunk());
-    setIsProfileOpen(false);
-    setIsConfirmOpen(false);
-  };
-
-  const cancelLogout = () => {
-    setIsConfirmOpen(false);
-  };
-
-  const openLogoutConfirm = () => {
-    setIsProfileOpen(false);
-    setIsConfirmOpen(true);
-  };
-
-  const openProfilePage = () => {
-    setIsProfileOpen(false);
-    setIsOpen(false);
-    navigate("/profile");
   };
 
   return (

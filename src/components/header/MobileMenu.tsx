@@ -13,7 +13,7 @@ interface MobileMenuProps {
   isActiveLink: (path?: string) => boolean;
   handleLinkClick: (
     e: React.MouseEvent<HTMLAnchorElement>,
-    path: string,
+    path?: string,
   ) => void;
   user: User | null;
   openProfilePage: () => void;
