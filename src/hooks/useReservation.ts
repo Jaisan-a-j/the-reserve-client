@@ -5,15 +5,15 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-import { useAppSelector, useAppDispatch } from "../../hooks/reduxHooks";
-import { createBookingThunk } from "../../features/booking/bookingThunk";
-import { clearBookingMessage } from "../../features/booking/bookingSlice";
+import { useAppSelector, useAppDispatch } from "../hooks/reduxHooks";
+import { createBookingThunk } from "../features/booking/bookingThunk";
+import { clearBookingMessage } from "../features/booking/bookingSlice";
 import {
   getBookedTimeSlots,
   getMyBookings,
   cancelBooking,
-} from "../../services/bookingService";
-import type { BookingInput, UserBooking } from "../../types";
+} from "../services/bookingService";
+import type { BookingInput, UserBooking } from "../types";
 
 const defaultFormData = {
   message: "",

@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import BookingLimitPanel from "./BookingLimitPanel";
 import ReservationForm from "./ReservationForm";
-import useReservation from "./useReservation";
+import useReservation from "../../hooks/useReservation";
 import ContactCard from "./ContactCard";
 import ActiveUserBooking from "./ActiveUserBooking";
 import Modal from "../common/Modal";

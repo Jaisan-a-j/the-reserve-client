@@ -1,5 +1,7 @@
 import home from "../../assets/home.jpeg";
 import { useAppSelector } from "../../hooks/reduxHooks";
+import { motion } from "framer-motion";
+import TypingText from "./TypingText";
 
 const Main = () => {
   const user = useAppSelector((state) => state.auth.user);
@@ -18,9 +20,14 @@ const Main = () => {
         </div>
 
         <div className="mt-8 text-center xl:w-[60%]">
-          <h1 className="text-3xl xl:text-5xl font-bold tracking-tight text-[#2b2d42] leading-tight">
-            Savor Every Bite. Savor Every Moment.
-          </h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-3xl xl:text-5xl font-bold tracking-tight text-[#2b2d42] leading-tight"
+          >
+            Savor Every Bite. <TypingText text="Savor Every Moment." />
+          </motion.h1>
 
           <p className="mt-6 text-gray-600 text-lg leading-8">
             Welcome <span className="text-3xl font-bold">{user?.fullName}</span>{" "}

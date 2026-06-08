@@ -1,6 +1,6 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 
-import { Navigation } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -22,10 +22,14 @@ const Team = () => {
 
       <div className="max-w-7xl mx-auto mt-20">
         <Swiper
-          modules={[Navigation]}
+          modules={[Navigation, Autoplay]}
           navigation
           spaceBetween={30}
           slidesPerView={1}
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
+          }}
           breakpoints={{
             640: {
               slidesPerView: 2,
