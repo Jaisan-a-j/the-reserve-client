@@ -41,8 +41,7 @@ const TypingText = ({ text }: Props) => {
       animate={{ opacity: 1 }}
       className="text-[#7c5dfa]"
     >
-      {displayText}
-      <span className="animate-pulse">|</span>
+      <span className="animate-pulse italic">{displayText}|</span>
     </motion.span>
   );
 };

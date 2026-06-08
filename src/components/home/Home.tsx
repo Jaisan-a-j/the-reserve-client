@@ -26,7 +26,7 @@ const Main = () => {
             transition={{ duration: 0.8 }}
             className="text-3xl xl:text-5xl font-bold tracking-tight text-[#2b2d42] leading-tight"
           >
-            Savor Every Bite. <TypingText text="Savor Every Moment." />
+            Savor Every Bite. <TypingText text="savor every moment." />
           </motion.h1>
 
           <p className="mt-6 text-gray-600 text-lg leading-8">
