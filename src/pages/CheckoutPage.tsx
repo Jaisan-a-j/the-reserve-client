@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import BackButton from "../components/common/BackButton";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -22,6 +22,7 @@ import {
 import { clearCartItems } from "../features/cart/cartSlice";
 import { createOrderThunk } from "../features/order/orderThunk";
 import { formatCurrency } from "../utils/formatCurrency";
+import { Link } from "react-router-dom";
 
 type PlacedOrderSummary = {
   total: number;
@@ -286,13 +287,13 @@ const CheckoutPage = () => {
               )}
             </div>
           </div>
-          <Link
+          <BackButton
             to="/buy-online"
-            className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
+            className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] border-transparent"
           >
             <ShoppingBag size={19} strokeWidth={2.4} />
             Back to menu
-          </Link>
+          </BackButton>
         </section>
       </main>
     );
@@ -301,13 +302,10 @@ const CheckoutPage = () => {
   return (
     <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-24 text-[#111111] sm:px-6 lg:px-10">
       <div className="mx-auto max-w-[1440px]">
-        <Link
-          to="/buy-online"
-          className="inline-flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold shadow-sm transition-colors hover:border-[#825cff]"
-        >
+        <BackButton to="/buy-online">
           <ArrowLeft size={18} strokeWidth={2.4} />
           Back to menu
-        </Link>
+        </BackButton>
 
         <div className="mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
           <section className="min-w-0">

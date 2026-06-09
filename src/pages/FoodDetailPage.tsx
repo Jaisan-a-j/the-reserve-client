@@ -1,14 +1,14 @@
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Star, Truck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useAppDispatch } from "../hooks/reduxHooks";
 import { updateCartItemQuantityThunk } from "../features/cart/cartThunk";
 import { useFoodDetails } from "../hooks/useFoodDetails";
 import type { FoodItem } from "../types";
 import { formatCurrency } from "../utils/formatCurrency";
+import BackButton from "../components/common/BackButton";
+import FoodDetailsPanel from "../components/food/FoodDetailsPanel";
 import FoodInfoCard from "../components/common/FoodInfoCard";
 
 const FoodDetailPage = () => {
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { item, currentQuantity, foodLoading, foodError, cartLoading } =
     useFoodDetails();
@@ -42,13 +42,12 @@ const FoodDetailPage = () => {
           <p className="text-lg font-medium text-gray-600">
             {foodError || "Dish not found."}
           </p>
-          <button
-            type="button"
-            onClick={() => navigate("/buy-online")}
-            className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
+          <BackButton
+            to="/buy-online"
+            className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] border-transparent"
           >
             Back to menu
-          </button>
+          </BackButton>
         </div>
       </main>
     );
@@ -57,14 +56,10 @@ const FoodDetailPage = () => {
   return (
     <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-24 text-[#111111] sm:px-6 lg:px-10">
       <div className="mx-auto max-w-[1200px]">
-        <button
-          type="button"
-          onClick={() => navigate("/buy-online")}
-          className="inline-flex h-11 items-center gap-2 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] shadow-sm transition-colors hover:border-[#825cff]"
-        >
+        <BackButton to="/buy-online">
           <ArrowLeft size={18} strokeWidth={2.4} />
           Back to menu
-        </button>
+        </BackButton>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.3fr_0.9fr]">
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -122,72 +117,12 @@ const FoodDetailPage = () => {
             </div>
           </section>
 
-          <aside className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-            <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[#dbeafe] bg-[#eff6ff] p-5">
-              <Truck size={20} strokeWidth={2.4} className="text-[#2563eb]" />
-              <div>
-                <p className="text-sm font-semibold text-[#111111]">
-                  Ready for pickup or delivery
-                </p>
-                <p className="text-sm text-gray-600">
-                  Choose your order preference once you checkout.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-sm text-gray-600">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Category</span>
-                <span className="text-gray-800">{item.category}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Spice</span>
-                <span className="text-gray-800">{item.spice}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Dietary</span>
-                <span className="text-gray-800">
-                  {item.dietary.join(" • ") || "None"}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => addToCart(item)}
-              className="mt-8 flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
-            >
-              {cartLoading ? (
-                "Adding..."
-              ) : (
-                <>
-                  <ShoppingCart size={20} strokeWidth={2.4} />
-                  {(currentQuantity ?? 0) > 0 ? "Add another" : "Add to Cart"}
-                </>
-              )}
-            </button>
-
-            {(currentQuantity ?? 0) > 0 && (
-              <p className="mt-3 text-center text-sm text-gray-500">
-                Already in cart:{" "}
-                <span className="font-semibold text-[#111111]">
-                  {currentQuantity}
-                </span>
-              </p>
-            )}
-
-            <div className="mt-10 rounded-2xl border border-gray-200 bg-[#f8f7ff] p-5 text-sm text-gray-600">
-              <div className="mb-3 flex items-center gap-2 text-[#111111]">
-                <Star size={18} strokeWidth={2.4} />
-                <span className="font-semibold">Why choose this dish?</span>
-              </div>
-              <p>
-                A carefully crafted recipe with fresh ingredients, bold flavors,
-                and balanced presentation — perfect for sharing or enjoying
-                solo.
-              </p>
-            </div>
-          </aside>
+          <FoodDetailsPanel
+            item={item}
+            currentQuantity={currentQuantity ?? 0}
+            cartLoading={cartLoading}
+            addToCart={addToCart}
+          />
         </div>
       </div>
     </main>
