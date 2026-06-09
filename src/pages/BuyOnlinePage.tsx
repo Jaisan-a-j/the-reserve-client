@@ -26,6 +26,7 @@ import {
 import type { FoodItem } from "../types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Alert from "../components/common/Alert";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type FilterSectionProps = {
   title: string;
@@ -42,12 +43,6 @@ const cuisineOptions = [
 const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
 const ITEMS_PER_PAGE = 9;
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
 
 const FilterSection = ({ title, children }: FilterSectionProps) => (
   <div className="border-t border-gray-200 py-5 first:border-t-0 first:pt-0">

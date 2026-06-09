@@ -21,6 +21,7 @@ import {
 } from "../features/cart/cartThunk";
 import { clearCartItems } from "../features/cart/cartSlice";
 import { createOrderThunk } from "../features/order/orderThunk";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type PlacedOrderSummary = {
   total: number;
@@ -33,12 +34,6 @@ type CreateOrderResponse = {
     fulfillment?: "delivery" | "pickup";
   };
 };
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
 
 const CheckoutPage = () => {
   const dispatch = useAppDispatch();

@@ -11,12 +11,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 import { getMyOrdersThunk } from "../features/order/orderThunk";
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
+import { formatCurrency } from "../utils/formatCurrency";
 
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat("en-US", {

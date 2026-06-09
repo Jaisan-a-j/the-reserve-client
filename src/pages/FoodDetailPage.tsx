@@ -1,45 +1,17 @@
-import { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShoppingCart, Star, Truck } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
-import { getFoodItemsThunk } from "../features/food/foodThunk";
+import { useAppDispatch } from "../hooks/reduxHooks";
 import { updateCartItemQuantityThunk } from "../features/cart/cartThunk";
+import { useFoodDetails } from "../hooks/useFoodDetails";
 import type { FoodItem } from "../types";
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(value);
+import { formatCurrency } from "../utils/formatCurrency";
+import FoodInfoCard from "../components/common/FoodInfoCard";
 
 const FoodDetailPage = () => {
-  const { foodId } = useParams<{ foodId: string }>();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const {
-    items: menuItems,
-    loading: foodLoading,
-    error: foodError,
-  } = useAppSelector((state) => state.food);
-  const { items: cartItems, loading: cartLoading } = useAppSelector(
-    (state) => state.cart,
-  );
-
-  useEffect(() => {
-    if (menuItems.length === 0) {
-      dispatch(getFoodItemsThunk());
-    }
-  }, [dispatch, menuItems.length]);
-
-  const item = useMemo(
-    () => menuItems.find((foodItem) => foodItem._id === foodId),
-    [menuItems, foodId],
-  );
-
-  const currentQuantity =
-    item &&
-    (cartItems.find((cartItem) => cartItem.food._id === item._id)?.quantity ??
-      0);
+  const dispatch = useAppDispatch();
+  const { item, currentQuantity, foodLoading, foodError, cartLoading } =
+    useFoodDetails();
 
   const addToCart = (selectedItem: FoodItem) => {
     const nextQuantity = currentQuantity ? currentQuantity + 1 : 1;
@@ -121,14 +93,10 @@ const FoodDetailPage = () => {
               </p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-gray-200 bg-[#f8f7ff] p-5">
-                  <p className="text-sm font-semibold text-gray-500">
-                    Spice level
-                  </p>
-                  <p className="mt-3 text-lg font-bold">{item.spice}</p>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-[#f8f7ff] p-5">
-                  <p className="text-sm font-semibold text-gray-500">Dietary</p>
+                <FoodInfoCard title="Spice level">
+                  <p className="text-lg font-bold">{item.spice}</p>
+                </FoodInfoCard>
+                <FoodInfoCard title="Dietary">
                   <div className="mt-3 flex flex-wrap gap-2 text-sm text-[#111111]">
                     {item.dietary.length > 0 ? (
                       item.dietary.map((label) => (
@@ -143,16 +111,13 @@ const FoodDetailPage = () => {
                       <span className="text-gray-500">None</span>
                     )}
                   </div>
-                </div>
-                <div className="rounded-2xl border border-gray-200 bg-[#f8f7ff] p-5">
-                  <p className="text-sm font-semibold text-gray-500">
-                    Chef's note
-                  </p>
+                </FoodInfoCard>
+                <FoodInfoCard title="Chef's note">
                   <p className="mt-3 text-sm leading-6 text-gray-600">
                     A Reserve favorite made fresh to order with premium
                     ingredients and care.
-                  </p>
-                </div>
+                  </p>{" "}
+                </FoodInfoCard>
               </div>
             </div>
           </section>
