@@ -15,8 +15,6 @@ const MainPage = () => {
     return () => clearTimeout(t);
   }, []);
 
-  const showStartupOverlay = startupLoading;
-
   return (
     <div>
       <Home />
@@ -25,7 +23,7 @@ const MainPage = () => {
       <Team />
       <Reservation />
       <Faq />
-      {showStartupOverlay && <FullScreenLoader text="Loading..." />}
+      {startupLoading && <FullScreenLoader text="Loading..." />}
     </div>
   );
 };
