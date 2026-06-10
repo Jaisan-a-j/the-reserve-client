@@ -61,7 +61,10 @@ const MobileMenu = ({
               <div className="space-y-2">
                 <button
                   type="button"
-                  onClick={openProfilePage}
+                  onClick={() => {
+                    setIsOpen(false);
+                    openProfilePage();
+                  }}
                   className="flex h-11 w-full items-center gap-4 rounded-md px-1 text-left text-sm font-medium text-[#1e293b] transition-colors hover:text-[#7c5dfa]"
                 >
                   <User size={16} strokeWidth={2.3} />
