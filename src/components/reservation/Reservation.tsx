@@ -118,21 +118,21 @@ const Reservation = () => {
             <ContactCard title="Email/Phone">
               <div className="mt-5 space-y-2">
                 <p className="text-gray-600 text-base font-medium">
-                  johndoe@gmail.com
+                  thereserve@gmail.com
                 </p>
-                <p className="text-gray-600 text-base">+148 589 2001 2466</p>
+                <p className="text-gray-600 text-base">+91 9920012466</p>
               </div>
             </ContactCard>
 
             <ContactCard title="Our Location">
               <p className="mt-5 text-gray-600 text-base leading-8">
-                Office 149,
+                Suite 410, 4th Floor,
                 <br />
-                450 South Brand Brooklyn
+                720 Marine Drive Promenade,
                 <br />
-                San Diego County,
+                Ernakulam District,
                 <br />
-                CA 91905, USA
+                682031, India
               </p>
             </ContactCard>
           </address>
