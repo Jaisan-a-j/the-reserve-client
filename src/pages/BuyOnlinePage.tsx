@@ -410,7 +410,7 @@ const BuyOnlinePage = () => {
               <article
                 key={item._id}
                 onClick={() => navigate(`/buy-online/${item._id}`)}
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#825cff] flex h-full flex-col"
+                className=" rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-[#825cff] flex h-full flex-col"
               >
                 <img
                   src={item.image}
@@ -435,7 +435,7 @@ const BuyOnlinePage = () => {
                         e.stopPropagation();
                         addToCart(item);
                       }}
-                      className="inline-flex h-10 min-w-[142px] items-center justify-center gap-2 rounded-md bg-[#633df1] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
+                      className="cursor-pointer inline-flex h-10 min-w-[142px] items-center justify-center gap-2 rounded-md bg-[#633df1] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc]"
                     >
                       {isItemUpdating(item._id) ? (
                         "Adding..."
