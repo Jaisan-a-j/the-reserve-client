@@ -1,4 +1,3 @@
-import home from "../../assets/home.jpeg";
 import { useAppSelector } from "../../hooks/reduxHooks";
 import { motion } from "framer-motion";
 import RotatingText from "./RotatingText";
@@ -87,7 +86,7 @@ const Main = () => {
           className="mt-16 xl:mt-28"
         >
           <img
-            src={home}
+            src="https://res.cloudinary.com/drooxwpmj/image/upload/v1781102051/home_cwj3lz.jpg"
             alt="Restaurant Food"
             className="w-full h-[420px] object-cover rounded-[2rem]"
           />

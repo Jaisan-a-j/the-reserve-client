@@ -37,7 +37,6 @@ const MainLayout = () => {
     pathname === "/" ||
     pathname === "/buy-online" ||
     pathname.startsWith("/buy-online/") ||
-    pathname === "/checkout" ||
     pathname === "/profile";
 
   return (

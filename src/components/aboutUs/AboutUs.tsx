@@ -1,5 +1,4 @@
 import { BadgeCheck, ReceiptText, Sparkles, PartyPopper } from "lucide-react";
-import aboutUs from "../../assets/about-us.jpeg";
 import AboutData from "./AboutData";
 
 const AboutUs = () => {
@@ -19,7 +18,7 @@ const AboutUs = () => {
 
       <div className="max-w-6xl mx-auto mt-24 relative">
         <img
-          src={aboutUs}
+          src="https://res.cloudinary.com/drooxwpmj/image/upload/v1781102053/about-us_pae7ea.jpg"
           alt="Chef"
           className="w-full h-[650px] object-cover rounded-3xl"
         />
