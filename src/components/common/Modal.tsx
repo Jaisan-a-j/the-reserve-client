@@ -6,6 +6,7 @@ interface ModalProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmLoading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
   children?: ReactNode;
@@ -17,6 +18,7 @@ const Modal = ({
   message,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
+  confirmLoading = false,
   onConfirm,
   onClose,
   children,
@@ -63,10 +65,18 @@ const Modal = ({
             </button>
             <button
               type="button"
-              className="w-full sm:w-auto rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+              disabled={confirmLoading}
+              className="w-full sm:w-auto rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={onConfirm}
             >
-              {confirmLabel}
+              {confirmLoading ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
+                  Processing
+                </span>
+              ) : (
+                confirmLabel
+              )}
             </button>
           </div>
         </div>

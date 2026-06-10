@@ -22,6 +22,7 @@ const Header = () => {
     cancelLogout,
     openLogoutConfirm,
     openProfilePage,
+    logoutLoading,
   } = useAuthMenu();
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -135,6 +136,7 @@ const Header = () => {
         message="Are you sure you want to Logout?"
         confirmLabel="Yes, Logout"
         cancelLabel="Cancel"
+        confirmLoading={logoutLoading}
         onConfirm={confirmLogout}
         onClose={cancelLogout}
       />

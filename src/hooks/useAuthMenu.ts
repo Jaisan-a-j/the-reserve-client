@@ -12,6 +12,7 @@ export default function useAuthMenu() {
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   const authAction = () => {
     if (user) {
@@ -22,10 +23,16 @@ export default function useAuthMenu() {
   };
 
   const confirmLogout = async () => {
-    navigate("/");
-    await dispatch(logoutThunk());
-    setIsProfileOpen(false);
-    setIsConfirmOpen(false);
+    setLogoutLoading(true);
+
+    try {
+      await dispatch(logoutThunk());
+      setIsProfileOpen(false);
+      setIsConfirmOpen(false);
+      navigate("/");
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   const cancelLogout = () => {
@@ -51,5 +58,6 @@ export default function useAuthMenu() {
     cancelLogout,
     openLogoutConfirm,
     openProfilePage,
+    logoutLoading,
   } as const;
 }

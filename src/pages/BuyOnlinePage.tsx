@@ -77,6 +77,9 @@ const BuyOnlinePage = () => {
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
     Record<string, number>
   >({});
+  const [deletingItemIds, setDeletingItemIds] = useState<
+    Record<string, boolean>
+  >({});
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
@@ -193,6 +196,23 @@ const BuyOnlinePage = () => {
     });
   };
 
+  const isItemDeleting = (foodId: string) => deletingItemIds[foodId] ?? false;
+
+  const startDeletingItem = (foodId: string) => {
+    setDeletingItemIds((prev) => ({
+      ...prev,
+      [foodId]: true,
+    }));
+  };
+
+  const stopDeletingItem = (foodId: string) => {
+    setDeletingItemIds((prev) => {
+      const next = { ...prev };
+      delete next[foodId];
+      return next;
+    });
+  };
+
   const toggleFilter = (
     value: string,
     setState: Dispatch<SetStateAction<string[]>>,
@@ -232,7 +252,10 @@ const BuyOnlinePage = () => {
   };
 
   const removeItem = (foodId: string) => {
-    dispatch(removeCartItemThunk(foodId));
+    startDeletingItem(foodId);
+    dispatch(removeCartItemThunk(foodId)).finally(() =>
+      stopDeletingItem(foodId),
+    );
   };
 
   const minPricePercent = (minPrice / menuMaxPrice) * 100;
@@ -591,11 +614,22 @@ const BuyOnlinePage = () => {
                         </div>
                         <button
                           type="button"
+                          disabled={
+                            isItemUpdating(item.food._id) ||
+                            isItemDeleting(item.food._id)
+                          }
                           onClick={() => removeItem(item.food._id)}
                           aria-label={`Remove ${item.food.title}`}
-                          className="grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff]"
+                          className="grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <Trash2 size={18} strokeWidth={2.3} />
+                          {isItemDeleting(item.food._id) ? (
+                            <span
+                              className="inline-flex h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-[#633df1]"
+                              aria-label="Removing item"
+                            />
+                          ) : (
+                            <Trash2 size={18} strokeWidth={2.3} />
+                          )}
                         </button>
                       </div>
                     </div>

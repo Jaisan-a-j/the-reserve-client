@@ -16,6 +16,7 @@ const Reservation = () => {
     loadingSlots,
     userBookings,
     cancelError,
+    cancelLoading,
     existingBookingForSelectedDate,
     hasReachedBookingLimit,
     availableTimeSlots,
@@ -162,6 +163,7 @@ const Reservation = () => {
         message="Are you sure you want to delete this booking?"
         confirmLabel="Yes, delete"
         cancelLabel="Keep booking"
+        confirmLoading={cancelLoading}
         onConfirm={confirmCancelBooking}
         onClose={closeCancelConfirmation}
       />

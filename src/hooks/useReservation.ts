@@ -65,6 +65,7 @@ export const useReservation = () => {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [userBookings, setUserBookings] = useState<UserBooking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const today = new Date().toISOString().split("T")[0];
@@ -172,6 +173,7 @@ export const useReservation = () => {
     }
 
     setCancelError(null);
+    setCancelLoading(true);
 
     try {
       await cancelBooking(bookingId, token);
@@ -179,6 +181,8 @@ export const useReservation = () => {
     } catch (err) {
       console.error("Error cancelling booking:", err);
       setCancelError("Could not cancel booking. Please try again.");
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -259,6 +263,7 @@ export const useReservation = () => {
     userBookings,
     loadingBookings,
     cancelError,
+    cancelLoading,
     existingBookingForSelectedDate,
     hasReachedBookingLimit,
     availableTimeSlots,
