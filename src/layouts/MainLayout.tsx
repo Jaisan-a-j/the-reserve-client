@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Footer from "../components/common/Footer";
 import { useEffect } from "react";
 import { NavigationProvider } from "../providers/NavigationProvider";
+import ChatBotWidget from "../components/chatbot/ChatBotWidget";
 
 const HEADER_OFFSET = 64;
 
@@ -32,12 +33,20 @@ const MainLayout = () => {
     return () => window.clearTimeout(scrollTimer);
   }, [hash, pathname]);
 
+  const showChatWidget =
+    pathname === "/" ||
+    pathname === "/buy-online" ||
+    pathname.startsWith("/buy-online/") ||
+    pathname === "/checkout" ||
+    pathname === "/profile";
+
   return (
     <>
       <NavigationProvider>
         <Header />
         <Outlet />
         <Footer />
+        {showChatWidget && <ChatBotWidget />}
       </NavigationProvider>
     </>
   );
