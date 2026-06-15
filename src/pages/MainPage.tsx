@@ -6,6 +6,7 @@ import AboutUs from "../components/aboutUs/AboutUs";
 import Team from "../components/team/Team";
 import Faq from "../components/faq/Faq";
 import FullScreenLoader from "../components/common/FullScreenLoader";
+import DisplayReviews from "../components/reviews/DisplayReviews";
 
 const MainPage = () => {
   const [startupLoading, setStartupLoading] = useState(true);
@@ -22,6 +23,7 @@ const MainPage = () => {
       <Categories />
       <Team />
       <Reservation />
+      <DisplayReviews />
       <Faq />
       {startupLoading && <FullScreenLoader text="Loading..." />}
     </div>

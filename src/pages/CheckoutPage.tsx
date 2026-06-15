@@ -75,6 +75,8 @@ const CheckoutPage = () => {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [reviewFormError, setReviewFormError] = useState("");
+  const [reviewRatingError, setReviewRatingError] = useState("");
+  const [reviewTextError, setReviewTextError] = useState("");
   const createReviewMutation = useCreateReview();
 
   useEffect(() => {
@@ -240,19 +242,27 @@ const CheckoutPage = () => {
   const handleSubmitReview = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setReviewFormError("");
+    setReviewRatingError("");
+    setReviewTextError("");
 
     if (!token) {
       setReviewFormError("Please log in to submit your review.");
       return;
     }
 
+    if (reviewRating < 1 && !reviewText.trim()) {
+      setReviewRatingError("Please select a rating.");
+      setReviewTextError("Please write a review.");
+      return;
+    }
+
     if (reviewRating < 1) {
-      setReviewFormError("Please select a rating.");
+      setReviewRatingError("Please select a rating.");
       return;
     }
 
     if (!reviewText.trim()) {
-      setReviewFormError("Please write a review.");
+      setReviewTextError("Please write a review.");
       return;
     }
 
@@ -266,6 +276,8 @@ const CheckoutPage = () => {
           setReviewRating(0);
           setReviewText("");
           setReviewFormError("");
+          setReviewRatingError("");
+          setReviewTextError("");
         },
       },
     );
@@ -347,6 +359,8 @@ const CheckoutPage = () => {
                 ? createReviewMutation.error.message
                 : "")
             }
+            ratingError={reviewRatingError}
+            commentError={reviewTextError}
             successMessage={
               createReviewMutation.isSuccess
                 ? "Thank you! Your review has been submitted."

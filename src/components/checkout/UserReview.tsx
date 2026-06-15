@@ -11,6 +11,8 @@ interface UserReviewProps {
   isSubmitting?: boolean;
   errorMessage?: string;
   successMessage?: string;
+  ratingError?: string;
+  commentError?: string;
 }
 
 const UserReview = ({
@@ -22,6 +24,8 @@ const UserReview = ({
   isSubmitting = false,
   errorMessage = "",
   successMessage = "",
+  ratingError = "",
+  commentError = "",
 }: UserReviewProps) => {
   const [hoverRating, setHoverRating] = useState(0);
 
@@ -42,7 +46,7 @@ const UserReview = ({
         </p>
       ) : null}
 
-      {successMessage ? (
+      {successMessage && !ratingError && !commentError ? (
         <p className="checkout-review__feedback checkout-review__feedback--success">
           {successMessage}
         </p>
@@ -77,10 +81,18 @@ const UserReview = ({
             );
           })}
         </div>
+        {ratingError ? (
+          <p className="checkout-review__feedback checkout-review__feedback--error">
+            {ratingError}
+          </p>
+        ) : null}
       </div>
 
       <div className="checkout-review__field">
-        <label className="checkout-review__label" htmlFor="checkout-review-text">
+        <label
+          className="checkout-review__label"
+          htmlFor="checkout-review-text"
+        >
           Write a review
         </label>
         <textarea
@@ -91,6 +103,11 @@ const UserReview = ({
           onChange={(event) => onReviewTextChange(event.target.value)}
           rows={5}
         />
+        {commentError ? (
+          <p className="checkout-review__feedback checkout-review__feedback--error">
+            {commentError}
+          </p>
+        ) : null}
       </div>
 
       <button

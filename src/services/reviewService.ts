@@ -16,3 +16,8 @@ export const createReview = async (reviewData: ReviewInput, token: string) => {
 
   return response.data;
 };
+
+export const getReviews = async () => {
+  const response = await API.get("/");
+  return response.data.reviews;
+};
