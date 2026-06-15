@@ -8,6 +8,9 @@ interface UserReviewProps {
   reviewText: string;
   onReviewTextChange: (text: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  isSubmitting?: boolean;
+  errorMessage?: string;
+  successMessage?: string;
 }
 
 const UserReview = ({
@@ -16,6 +19,9 @@ const UserReview = ({
   reviewText,
   onReviewTextChange,
   onSubmit,
+  isSubmitting = false,
+  errorMessage = "",
+  successMessage = "",
 }: UserReviewProps) => {
   const [hoverRating, setHoverRating] = useState(0);
 
@@ -29,6 +35,18 @@ const UserReview = ({
         <h2>How was your experience?</h2>
         <p>We&apos;d love to hear your feedback.</p>
       </div>
+
+      {errorMessage ? (
+        <p className="checkout-review__feedback checkout-review__feedback--error">
+          {errorMessage}
+        </p>
+      ) : null}
+
+      {successMessage ? (
+        <p className="checkout-review__feedback checkout-review__feedback--success">
+          {successMessage}
+        </p>
+      ) : null}
 
       <div className="checkout-review__field">
         <span className="checkout-review__label">Your rating</span>
@@ -75,8 +93,12 @@ const UserReview = ({
         />
       </div>
 
-      <button type="submit" className="checkout-review__submit">
-        Submit Review
+      <button
+        type="submit"
+        className="checkout-review__submit"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Submitting..." : "Submit Review"}
       </button>
     </form>
   );

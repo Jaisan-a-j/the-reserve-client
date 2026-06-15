@@ -24,6 +24,7 @@ import { createOrderThunk } from "../features/order/orderThunk";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Link } from "react-router-dom";
 import UserReview from "../components/checkout/UserReview";
+import { useCreateReview } from "../hooks/useCreateReview";
 
 type PlacedOrderSummary = {
   total: number;
@@ -53,7 +54,7 @@ const CheckoutPage = () => {
     "delivery",
   );
   const [payment, setPayment] = useState<"card" | "counter">("card");
-  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(true);
   const [placedOrderSummary, setPlacedOrderSummary] =
     useState<PlacedOrderSummary | null>(null);
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
@@ -73,6 +74,8 @@ const CheckoutPage = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [reviewFormError, setReviewFormError] = useState("");
+  const createReviewMutation = useCreateReview();
 
   useEffect(() => {
     if (token && cartItems.length === 0) {
@@ -235,7 +238,37 @@ const CheckoutPage = () => {
   };
 
   const handleSubmitReview = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();   
+    event.preventDefault();
+    setReviewFormError("");
+
+    if (!token) {
+      setReviewFormError("Please log in to submit your review.");
+      return;
+    }
+
+    if (reviewRating < 1) {
+      setReviewFormError("Please select a rating.");
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      setReviewFormError("Please write a review.");
+      return;
+    }
+
+    createReviewMutation.mutate(
+      {
+        rating: reviewRating,
+        comment: reviewText.trim(),
+      },
+      {
+        onSuccess: () => {
+          setReviewRating(0);
+          setReviewText("");
+          setReviewFormError("");
+        },
+      },
+    );
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -307,6 +340,18 @@ const CheckoutPage = () => {
             reviewText={reviewText}
             onReviewTextChange={setReviewText}
             onSubmit={handleSubmitReview}
+            isSubmitting={createReviewMutation.isPending}
+            errorMessage={
+              reviewFormError ||
+              (createReviewMutation.isError
+                ? createReviewMutation.error.message
+                : "")
+            }
+            successMessage={
+              createReviewMutation.isSuccess
+                ? "Thank you! Your review has been submitted."
+                : ""
+            }
           />
         </section>
       </main>

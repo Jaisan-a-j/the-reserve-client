@@ -127,6 +127,20 @@ export interface UserType {
   email: string;
 }
 
+export interface ReviewInput {
+  rating: number;
+  comment: string;
+}
+
+export interface ReviewType {
+  _id: string;
+  userId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthState {
   user: UserType | null;
   token: string | null;
