@@ -122,10 +122,6 @@ const DisplayReviews = () => {
                 <p className="mb-5 text-sm leading-6 text-slate-700">
                   {review.comment}
                 </p>
-
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">
-                  {review.dateLabel}
-                </p>
               </div>
             ))
           )}
