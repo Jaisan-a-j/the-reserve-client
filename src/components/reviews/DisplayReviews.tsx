@@ -10,7 +10,7 @@ const Marquee =
 const DisplayReviews = () => {
   const { data: reviews } = useReviews();
 
-
+  const userReviews = reviews ?? [];
   return (
     <section className="bg-[#f8f6ff] py-16">
       <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
@@ -56,14 +56,14 @@ const DisplayReviews = () => {
 
       <div className="mt-12 overflow-hidden">
         <Marquee speed={30} gradient={false} pauseOnHover={false}>
-          {(reviews?.length ?? 0) === 0 ? (
+          {(userReviews?.length ?? 0) === 0 ? (
             <div className="mr-6 w-[320px] rounded-[2rem] border border-slate-200 bg-white px-6 py-8 shadow-lg">
               <p className="text-sm font-semibold text-slate-500">
                 No reviews available.
               </p>
             </div>
           ) : (
-           reviews.map((review: ReviewType) => (
+            userReviews.map((review: ReviewType) => (
               <div
                 key={review._id}
                 className="mr-6 w-[320px] rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]"

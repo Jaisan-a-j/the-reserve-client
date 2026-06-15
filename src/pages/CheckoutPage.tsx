@@ -75,7 +75,6 @@ const CheckoutPage = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [reviewFormError, setReviewFormError] = useState("");
   const [reviewRatingError, setReviewRatingError] = useState("");
   const [reviewTextError, setReviewTextError] = useState("");
   const createReviewMutation = useCreateReview();
@@ -243,14 +242,10 @@ const CheckoutPage = () => {
 
   const handleSubmitReview = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setReviewFormError("");
     setReviewRatingError("");
     setReviewTextError("");
 
-    if (!token) {
-      setReviewFormError("Please log in to submit your review.");
-      return;
-    }
+ 
     
     if (reviewRating < 1) setReviewRatingError("Please select a rating.");
     if (!reviewText.trim()) setReviewTextError("Please write a review.");
@@ -266,7 +261,6 @@ const CheckoutPage = () => {
         onSuccess: () => {
           setReviewRating(0);
           setReviewText("");
-          setReviewFormError("");
           setReviewRatingError("");
           setReviewTextError("");
           setAlertLogin(true)
