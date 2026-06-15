@@ -53,7 +53,7 @@ const CheckoutPage = () => {
     "delivery",
   );
   const [payment, setPayment] = useState<"card" | "counter">("card");
-  const [orderPlaced, setOrderPlaced] = useState(true);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [placedOrderSummary, setPlacedOrderSummary] =
     useState<PlacedOrderSummary | null>(null);
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
