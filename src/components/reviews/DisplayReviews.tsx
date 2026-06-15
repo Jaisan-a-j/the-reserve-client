@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import MarqueeBase from "react-fast-marquee";
 import { ChevronRight, Quote, Star } from "lucide-react";
 import { useReviews } from "../../hooks/useReviews";
@@ -8,28 +7,9 @@ type MarqueeModule = { default: typeof MarqueeBase };
 const Marquee =
   (MarqueeBase as unknown as MarqueeModule).default ?? MarqueeBase;
 
-const fakeNames = [
-  "Priya Sharma",
-  "Rahul Verma",
-  "Ananya Iyer",
-  "Aditi Bose",
-  "Rohan Patel",
-  "Neha Mehta",
-];
-
 const DisplayReviews = () => {
   const { data: reviews } = useReviews();
 
-  const reviewCards = useMemo(() => {
-    if (!reviews) return [];
-
-    return reviews.slice(0, 6).map((review: ReviewType, index) => ({
-      ...review,
-      displayName: fakeNames[index % fakeNames.length],
-      dateLabel:
-        index === 0 ? "2 days ago" : index === 1 ? "1 week ago" : "2 weeks ago",
-    }));
-  }, [reviews]);
 
   return (
     <section className="bg-[#f8f6ff] py-16">
@@ -76,14 +56,14 @@ const DisplayReviews = () => {
 
       <div className="mt-12 overflow-hidden">
         <Marquee speed={30} gradient={false} pauseOnHover={false}>
-          {reviewCards.length === 0 ? (
+          {(reviews?.length ?? 0) === 0 ? (
             <div className="mr-6 w-[320px] rounded-[2rem] border border-slate-200 bg-white px-6 py-8 shadow-lg">
               <p className="text-sm font-semibold text-slate-500">
                 No reviews available.
               </p>
             </div>
           ) : (
-            reviewCards.map((review) => (
+           reviews.map((review: ReviewType) => (
               <div
                 key={review._id}
                 className="mr-6 w-[320px] rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
@@ -91,14 +71,14 @@ const DisplayReviews = () => {
                 <div className="mb-4 flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#eef2ff] text-sm font-semibold text-[#5b21b6]">
-                      {review.displayName
+                      {review.userName
                         .split(" ")
                         .map((part) => part[0])
                         .join("")}
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-slate-950">
-                        {review.displayName}
+                        {review.userName}
                       </h3>
                     </div>
                   </div>

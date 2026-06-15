@@ -25,6 +25,7 @@ import { formatCurrency } from "../utils/formatCurrency";
 import { Link } from "react-router-dom";
 import UserReview from "../components/checkout/UserReview";
 import { useCreateReview } from "../hooks/useCreateReview";
+import Alert from "../components/common/Alert";
 
 type PlacedOrderSummary = {
   total: number;
@@ -78,6 +79,7 @@ const CheckoutPage = () => {
   const [reviewRatingError, setReviewRatingError] = useState("");
   const [reviewTextError, setReviewTextError] = useState("");
   const createReviewMutation = useCreateReview();
+  const [alertLogin, setAlertLogin] = useState(false);
 
   useEffect(() => {
     if (token && cartItems.length === 0) {
@@ -249,22 +251,11 @@ const CheckoutPage = () => {
       setReviewFormError("Please log in to submit your review.");
       return;
     }
-
-    if (reviewRating < 1 && !reviewText.trim()) {
-      setReviewRatingError("Please select a rating.");
-      setReviewTextError("Please write a review.");
-      return;
-    }
-
-    if (reviewRating < 1) {
-      setReviewRatingError("Please select a rating.");
-      return;
-    }
-
-    if (!reviewText.trim()) {
-      setReviewTextError("Please write a review.");
-      return;
-    }
+    
+    if (reviewRating < 1) setReviewRatingError("Please select a rating.");
+    if (!reviewText.trim()) setReviewTextError("Please write a review.");
+    
+    if (reviewRating < 1 || !reviewText.trim()) return;
 
     createReviewMutation.mutate(
       {
@@ -278,6 +269,7 @@ const CheckoutPage = () => {
           setReviewFormError("");
           setReviewRatingError("");
           setReviewTextError("");
+          setAlertLogin(true)
         },
       },
     );
@@ -352,22 +344,23 @@ const CheckoutPage = () => {
             reviewText={reviewText}
             onReviewTextChange={setReviewText}
             onSubmit={handleSubmitReview}
-            isSubmitting={createReviewMutation.isPending}
-            errorMessage={
-              reviewFormError ||
-              (createReviewMutation.isError
-                ? createReviewMutation.error.message
-                : "")
-            }
+            isSubmitting={createReviewMutation.isPending} 
             ratingError={reviewRatingError}
             commentError={reviewTextError}
-            successMessage={
-              createReviewMutation.isSuccess
-                ? "Thank you! Your review has been submitted."
-                : ""
-            }
           />
         </section>
+        <Alert
+          isOpen={alertLogin}
+          type="success"
+          message={
+            createReviewMutation.isSuccess
+              ? "Thank you! Your review has been submitted."
+              : ""
+          }
+          onClose={() => {
+            setAlertLogin(false)
+          }}
+        />
       </main>
     );
   }
@@ -876,6 +869,7 @@ const CheckoutPage = () => {
           </aside>
         </div>
       </div>
+
     </main>
   );
 };

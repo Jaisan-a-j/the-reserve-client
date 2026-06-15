@@ -22,8 +22,6 @@ const UserReview = ({
   onReviewTextChange,
   onSubmit,
   isSubmitting = false,
-  errorMessage = "",
-  successMessage = "",
   ratingError = "",
   commentError = "",
 }: UserReviewProps) => {
@@ -39,18 +37,6 @@ const UserReview = ({
         <h2>How was your experience?</h2>
         <p>We&apos;d love to hear your feedback.</p>
       </div>
-
-      {errorMessage ? (
-        <p className="checkout-review__feedback checkout-review__feedback--error">
-          {errorMessage}
-        </p>
-      ) : null}
-
-      {successMessage && !ratingError && !commentError ? (
-        <p className="checkout-review__feedback checkout-review__feedback--success">
-          {successMessage}
-        </p>
-      ) : null}
 
       <div className="checkout-review__field">
         <span className="checkout-review__label">Your rating</span>
@@ -81,7 +67,7 @@ const UserReview = ({
             );
           })}
         </div>
-        {ratingError ? (
+        {ratingError && !reviewRating ? (
           <p className="checkout-review__feedback checkout-review__feedback--error">
             {ratingError}
           </p>
@@ -103,7 +89,7 @@ const UserReview = ({
           onChange={(event) => onReviewTextChange(event.target.value)}
           rows={5}
         />
-        {commentError ? (
+        {commentError && !reviewText ? (
           <p className="checkout-review__feedback checkout-review__feedback--error">
             {commentError}
           </p>
