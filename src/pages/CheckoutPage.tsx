@@ -23,6 +23,7 @@ import { clearCartItems } from "../features/cart/cartSlice";
 import { createOrderThunk } from "../features/order/orderThunk";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Link } from "react-router-dom";
+import UserReview from "../components/checkout/UserReview";
 
 type PlacedOrderSummary = {
   total: number;
@@ -52,7 +53,7 @@ const CheckoutPage = () => {
     "delivery",
   );
   const [payment, setPayment] = useState<"card" | "counter">("card");
-  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(true);
   const [placedOrderSummary, setPlacedOrderSummary] =
     useState<PlacedOrderSummary | null>(null);
   const [updatingItemCounts, setUpdatingItemCounts] = useState<
@@ -70,6 +71,8 @@ const CheckoutPage = () => {
     cardCvc: "",
   }));
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
 
   useEffect(() => {
     if (token && cartItems.length === 0) {
@@ -231,6 +234,10 @@ const CheckoutPage = () => {
     }
   };
 
+  const handleSubmitReview = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();   
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
     if (formErrors[field]) {
@@ -294,6 +301,13 @@ const CheckoutPage = () => {
             <ShoppingBag size={19} strokeWidth={2.4} />
             Back to menu
           </BackButton>
+          <UserReview
+            reviewRating={reviewRating}
+            onRatingChange={setReviewRating}
+            reviewText={reviewText}
+            onReviewTextChange={setReviewText}
+            onSubmit={handleSubmitReview}
+          />
         </section>
       </main>
     );
