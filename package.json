@@ -26,6 +26,7 @@
     "nodemailer": "^8.0.9",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-fast-marquee": "^1.6.5",
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.15.0",
     "sass": "^1.101.0",
