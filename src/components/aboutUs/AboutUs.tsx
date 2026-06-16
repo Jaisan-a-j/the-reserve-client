@@ -23,18 +23,18 @@ const AboutUs = () => {
           className="w-full h-[650px] object-cover rounded-3xl"
         />
 
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 md:p-12 max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 absolute left-1/2 -translate-x-1/2 -bottom-24 w-[90%]">
-          <AboutData icon={BadgeCheck} count="7+" title="Years of Experience" />
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-200 p-8 md:p-12 max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-5 absolute left-1/2 -translate-x-1/2 -bottom-24 w-[90%]">
+          <AboutData icon={BadgeCheck} count="7" title="Years of Experience" />
 
           <AboutData
             icon={ReceiptText}
-            count="30+"
+            count="30"
             title="Dishes in Our Menu"
           />
 
-          <AboutData icon={Sparkles} count="500+" title="Customer Reviews" />
+          <AboutData icon={Sparkles} count="500" title="Customer Reviews" />
 
-          <AboutData icon={PartyPopper} count="10k+" title="Happy Customers" />
+          <AboutData icon={PartyPopper} count="1000" title="Happy Customers" />
         </div>
       </div>
 

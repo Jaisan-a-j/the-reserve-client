@@ -64,7 +64,7 @@ const Main = () => {
         <motion.a
           href="#buyonline"
           animate={{
-            y: [0, -4, 0],
+            y: [0, -7, 0],
           }}
           transition={{
             duration: 2,
