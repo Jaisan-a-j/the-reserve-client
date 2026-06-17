@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "../../assets/icon.jpeg";
 import { navLinks } from "../../constants/menus";
@@ -12,6 +11,7 @@ import { UserRound } from "lucide-react";
 import ProfileDropdown from "../header/ProfileDropdown";
 import MobileMenu from "../header/MobileMenu";
 import useAuthMenu from "../../hooks/useAuthMenu";
+import { useClickOutside } from "../../hooks/useClickOutside";
 const Header = () => {
   const user = useAppSelector((state) => state.auth.user);
   const {
@@ -22,10 +22,12 @@ const Header = () => {
     cancelLogout,
     openLogoutConfirm,
     openProfilePage,
+    openAuthPage,
+    setIsProfileOpen,
     logoutLoading,
+    profileMenuRef,
   } = useAuthMenu();
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
-
+  useClickOutside({ ref: profileMenuRef, isOpen: isProfileOpen, onClose: () => setIsProfileOpen(false) });
   const { isOpen, setIsOpen, handleLinkClick } = useNavigation();
   const { activeSection } = useNavigationContext();
 
@@ -75,34 +77,25 @@ const Header = () => {
           />
 
           <div className="relative hidden lg:block" ref={profileMenuRef}>
-            {user ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={authAction}
-                    aria-label="Open profile menu"
-                    aria-expanded={isProfileOpen}
-                    className="grid h-10 w-10 place-items-center rounded-full border border-[#ded7ff] bg-[#f5f2ff] text-[#7c5dfa] transition-colors hover:border-[#7c5dfa]"
-                  >
-                    <UserRound size={19} strokeWidth={2.4} />
-                  </button>
-                </div>
-
-                <ProfileDropdown
-                  isProfileOpen={isProfileOpen}
-                  user={user}
-                  onProfilePage={openProfilePage}
-                  onLogoutConfirm={openLogoutConfirm}
-                />
-              </>
-            ) : (
-              <SecondaryButton
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
                 onClick={authAction}
-                content="Login"
-                className="cursor-pointer"
-              />
-            )}
+                aria-label="Open profile menu"
+                aria-expanded={isProfileOpen}
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#ded7ff] bg-[#f5f2ff] text-[#7c5dfa] transition-colors hover:border-[#7c5dfa]"
+              >
+                <UserRound size={19} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            <ProfileDropdown
+              isProfileOpen={isProfileOpen}
+              user={user}
+              onProfilePage={openProfilePage}
+              onLogoutConfirm={openLogoutConfirm}
+              onLogin={openAuthPage}
+            />
           </div>
 
           <button
@@ -127,7 +120,7 @@ const Header = () => {
         openProfilePage={openProfilePage}
         openLogoutConfirm={openLogoutConfirm}
         setIsOpen={setIsOpen}
-        authAction={authAction}
+        authAction={openAuthPage}
       />
 
       <Modal

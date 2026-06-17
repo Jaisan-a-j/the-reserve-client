@@ -1,25 +1,21 @@
-import { useState } from "react";
+import { useState , useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "./reduxHooks";
+import { useAppDispatch } from "./reduxHooks";
 import { logoutThunk } from "../features/auth/authThunk";
 import { useNavigation } from "./useNavigation";
 
 export default function useAuthMenu() {
-  const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { setIsOpen } = useNavigation();
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const authAction = () => {
-    if (user) {
-      setIsProfileOpen((current) => !current);
-    } else {
-      navigate("/auth");
-    }
+    setIsProfileOpen((current) => !current);
   };
 
   const confirmLogout = async () => {
@@ -50,6 +46,12 @@ export default function useAuthMenu() {
     navigate("/profile");
   };
 
+  const openAuthPage = () => {
+    setIsProfileOpen(false);
+    setIsOpen(false);
+    navigate("/auth");
+  };
+
   return {
     isConfirmOpen,
     isProfileOpen,
@@ -58,6 +60,9 @@ export default function useAuthMenu() {
     cancelLogout,
     openLogoutConfirm,
     openProfilePage,
+    openAuthPage,
+    setIsProfileOpen,
     logoutLoading,
+    profileMenuRef
   } as const;
 }
