@@ -222,7 +222,7 @@ export const useReservation = () => {
     e.preventDefault();
     setFieldErrors({});
 
-    if (!user) {
+    if (!user || !token) {
       setFieldErrors({ form: "Please log in before booking a table." });
       return;
     }
