@@ -542,7 +542,7 @@ const BuyOnlinePage = () => {
             Your Basket ({cartItems.length})
           </h2>
 
-          {cartError && (
+          {user && cartError && (
             <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               {cartError}
             </div>
