@@ -55,6 +55,7 @@ const getTimeSlotsForDate = (selectedDate: string, today: string) => {
 export const useReservation = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.auth.user);
   const { loading, success, error, message } = useAppSelector(
     (state) => state.booking,
   );
@@ -221,7 +222,7 @@ export const useReservation = () => {
     e.preventDefault();
     setFieldErrors({});
 
-    if (!token) {
+    if (!user) {
       setFieldErrors({ form: "Please log in before booking a table." });
       return;
     }

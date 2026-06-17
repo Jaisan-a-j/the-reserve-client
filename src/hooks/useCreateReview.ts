@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation , useQueryClient } from "@tanstack/react-query";
 import { createReview } from "../services/reviewService";
 import { useAppSelector } from "./reduxHooks";
 import type { ReviewInput } from "../types";
@@ -14,6 +14,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 
 export const useCreateReview = () => {
   const token = useAppSelector((state) => state.auth.token);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (reviewData: ReviewInput) => {
@@ -28,6 +29,9 @@ export const useCreateReview = () => {
           getErrorMessage(error, "Unable to submit your review."),
         );
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
     },
   });
 };
