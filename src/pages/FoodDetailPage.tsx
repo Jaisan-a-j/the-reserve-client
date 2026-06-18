@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useAppDispatch } from "../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 import { updateCartItemQuantityThunk } from "../features/cart/cartThunk";
 import { useFoodDetails } from "../hooks/useFoodDetails";
 import type { FoodItem } from "../types";
@@ -7,13 +8,20 @@ import { formatCurrency } from "../utils/formatCurrency";
 import BackButton from "../components/common/BackButton";
 import FoodDetailsPanel from "../components/food/FoodDetailsPanel";
 import FoodInfoCard from "../components/common/FoodInfoCard";
+import Alert from "../components/common/Alert";
 
 const FoodDetailPage = () => {
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const [alertLogin, setAlertLogin] = useState(false);
   const { item, currentQuantity, foodLoading, foodError, cartLoading } =
     useFoodDetails();
 
   const addToCart = (selectedItem: FoodItem) => {
+    if (!user) {
+      setAlertLogin(true);
+      return;
+    }
     const nextQuantity = currentQuantity ? currentQuantity + 1 : 1;
     dispatch(
       updateCartItemQuantityThunk({
@@ -125,6 +133,13 @@ const FoodDetailPage = () => {
           />
         </div>
       </div>
+      <Alert
+        isOpen={alertLogin}
+        message="Please login to Add to Cart"
+        onClose={() => {
+          setAlertLogin(false);
+        }}
+      />
     </main>
   );
 };

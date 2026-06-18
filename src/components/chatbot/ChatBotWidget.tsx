@@ -16,6 +16,26 @@ const ChatBotWidget = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 639px)");
+
+    const updateScrollLock = () => {
+      if (isOpen && mobileQuery.matches) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+    };
+
+    updateScrollLock();
+    mobileQuery.addEventListener("change", updateScrollLock);
+
+    return () => {
+      mobileQuery.removeEventListener("change", updateScrollLock);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed) return;
@@ -54,6 +74,17 @@ const ChatBotWidget = () => {
           <MessageCircle size={24} className="sm:h-7 sm:w-7" />
         </button>
       </div>
+
+      <div
+        className={`
+          fixed inset-0 z-[9998] bg-black/60
+          transition-opacity duration-300 ease-in-out
+          sm:hidden
+          ${isOpen ? "opacity-100" : "pointer-events-none opacity-0"}
+        `}
+        onClick={() => setIsOpen(false)}
+        aria-hidden={!isOpen}
+      />
 
       <div
         className={`
