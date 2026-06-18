@@ -26,6 +26,7 @@ import { formatCurrency } from "../utils/formatCurrency";
 import { Link } from "react-router-dom";
 import UserReview from "../components/checkout/UserReview";
 import { useCreateReview } from "../hooks/useCreateReview";
+import { useUserProfile } from "../hooks/useUserProfile";
 import Alert from "../components/common/Alert";
 
 type PlacedOrderSummary = {
@@ -79,6 +80,7 @@ const CheckoutPage = () => {
   const [reviewRatingError, setReviewRatingError] = useState("");
   const [reviewTextError, setReviewTextError] = useState("");
   const createReviewMutation = useCreateReview();
+  const { data: userProfile } = useUserProfile();
   const [alertLogin, setAlertLogin] = useState(false);
   const queryClient = useQueryClient();
 
@@ -98,6 +100,18 @@ const CheckoutPage = () => {
       email: prev.email || user.email || "",
     }));
   }, [user]);
+
+  useEffect(() => {
+    if (!userProfile?.profile) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormValues((prev) => ({
+      ...prev,
+      address: prev.address || userProfile.profile?.address || "",
+      city: prev.city || userProfile.profile?.city || "",
+      zipcode: prev.zipcode || userProfile.profile?.pinCode || "",
+    }));
+  }, [userProfile]);
 
   const subtotal = useMemo(
     () =>

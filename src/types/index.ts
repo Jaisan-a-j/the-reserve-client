@@ -122,10 +122,23 @@ export interface ButtonTypes {
   type?: "button" | "submit" | "reset";
 }
 
+export interface UserProfile {
+  address: string;
+  city: string;
+  pinCode: string;
+}
+
 export interface UserType {
   _id: string;
   fullName: string;
   email: string;
+  profile?: UserProfile;
+}
+
+export interface UpdateUserProfileInput {
+  address: string;
+  city: string;
+  pinCode: string;
 }
 
 export interface ReviewInput {

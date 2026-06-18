@@ -39,6 +39,23 @@ export const getCurrentUser = async (token: string) => {
   return response.data;
 };
 
+export const updateUserProfile = async (
+  profile: {
+    address: string;
+    city: string;
+    pinCode: string;
+  },
+  token: string,
+) => {
+  const response = await API.put("/profile", profile, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+};
+
 export const loginGoogleUser = async (
   credentialResponse: CredentialResponse,
 ) => {
