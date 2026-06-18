@@ -42,6 +42,7 @@ const cuisineOptions = [
 ];
 const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
+const menuCategories = ["All", "Best Sellers🔥", "Chef's Specials", "New Arrivals", "Trending"];
 const ITEMS_PER_PAGE = 9;
 
 const FilterSection = ({ title, children }: FilterSectionProps) => (
@@ -426,6 +427,26 @@ const BuyOnlinePage = () => {
             >
               <SlidersHorizontal size={21} strokeWidth={2.4} />
             </button>
+          </div>
+
+          <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
+            {menuCategories.map((category) => {
+              const isActive = category === "All";
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  className={`shrink-0 rounded-md border bg-white px-4 py-2 text-sm font-semibold transition-colors sm:px-5 sm:py-2.5 sm:text-base ${
+                    isActive
+                      ? "border-[#633df1] text-[#633df1]"
+                      : "border-gray-200 text-[#111111]"
+                  }`}
+                >
+                  {category}
+                </button>
+              );
+            })}
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
