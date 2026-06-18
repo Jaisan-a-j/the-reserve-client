@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import {   useQueryClient } from "@tanstack/react-query";
 import BackButton from "../components/common/BackButton";
 import {
   ArrowLeft,
@@ -79,6 +80,7 @@ const CheckoutPage = () => {
   const [reviewTextError, setReviewTextError] = useState("");
   const createReviewMutation = useCreateReview();
   const [alertLogin, setAlertLogin] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (token && cartItems.length === 0) {
@@ -232,6 +234,7 @@ const CheckoutPage = () => {
       });
       dispatch(clearCartItems());
       setOrderPlaced(true);
+      queryClient.invalidateQueries({ queryKey: ["bestSellers"] });
     } catch {
       setFormErrors((prev) => ({
         ...prev,

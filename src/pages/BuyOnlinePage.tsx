@@ -27,6 +27,7 @@ import type { FoodItem } from "../types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Alert from "../components/common/Alert";
 import { formatCurrency } from "../utils/formatCurrency";
+import { useBestSellers } from "../hooks/useBestSellers";
 
 type FilterSectionProps = {
   title: string;
@@ -43,6 +44,7 @@ const cuisineOptions = [
 const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
 const menuCategories = ["All", "Best Sellers🔥", "Chef's Specials", "New Arrivals", "Trending"];
+const BEST_SELLERS_CATEGORY = "Best Sellers🔥";
 const ITEMS_PER_PAGE = 9;
 
 const FilterSection = ({ title, children }: FilterSectionProps) => (
@@ -88,6 +90,14 @@ const BuyOnlinePage = () => {
   const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [alertLogin, setAlertLogin] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const isBestSellersCategory = selectedCategory === BEST_SELLERS_CATEGORY;
+  const {
+    data: bestSellers = [],
+    isLoading: bestSellersLoading,
+    isError: bestSellersError,
+    error: bestSellersErrorDetails,
+  } = useBestSellers(isBestSellersCategory);
 
   useEffect(() => {
     dispatch(getFoodItemsThunk());
@@ -113,8 +123,14 @@ const BuyOnlinePage = () => {
     };
   }, []);
 
+  const categoryMenuItems = useMemo(() => {
+    if (selectedCategory === "All") return menuItems;
+    if (isBestSellersCategory) return bestSellers;
+    return [];
+  }, [selectedCategory, menuItems, isBestSellersCategory, bestSellers]);
+
   const filteredMenu = useMemo(() => {
-    return menuItems.filter((item) => {
+    return categoryMenuItems.filter((item) => {
       const matchesPrice =
         item.price >= minPrice && item.price <= activeMaxPrice;
       const matchesCuisine =
@@ -129,13 +145,34 @@ const BuyOnlinePage = () => {
       return matchesPrice && matchesCuisine && matchesDietary && matchesSpice;
     });
   }, [
-    menuItems,
+    categoryMenuItems,
     minPrice,
     activeMaxPrice,
     selectedCuisines,
     selectedDietary,
     selectedSpice,
   ]);
+
+  const isMenuLoading =
+    selectedCategory === "All"
+      ? foodLoading
+      : isBestSellersCategory
+        ? bestSellersLoading
+        : false;
+
+  const menuError =
+    selectedCategory === "All"
+      ? foodError
+      : isBestSellersCategory && bestSellersError
+        ? (bestSellersErrorDetails?.message ?? "Unable to load best sellers.")
+        : null;
+
+  const isMenuLoaded =
+    selectedCategory === "All"
+      ? foodLoaded
+      : isBestSellersCategory
+        ? !bestSellersLoading && !bestSellersError
+        : true;
 
   const requestedPage = Number(searchParams.get("page") ?? 1);
   const totalPages = Math.max(
@@ -431,12 +468,16 @@ const BuyOnlinePage = () => {
 
           <div className="mb-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
             {menuCategories.map((category) => {
-              const isActive = category === "All";
+              const isActive = category === selectedCategory;
 
               return (
                 <button
                   key={category}
                   type="button"
+                  onClick={() => {
+                    resetPage();
+                    setSelectedCategory(category);
+                  }}
                   className={`shrink-0 rounded-md border bg-white px-4 py-2 text-sm font-semibold transition-colors sm:px-5 sm:py-2.5 sm:text-base ${
                     isActive
                       ? "border-[#633df1] text-[#633df1]"
@@ -450,7 +491,9 @@ const BuyOnlinePage = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
-            {paginatedMenu.map((item) => (
+            {!isMenuLoading &&
+              !menuError &&
+              paginatedMenu.map((item) => (
               <article
                 key={item._id}
                 onClick={() => navigate(`/buy-online/${item._id}`)}
@@ -495,24 +538,28 @@ const BuyOnlinePage = () => {
               </article>
             ))}
 
-            {foodLoading && (
+            {isMenuLoading && (
               <div className="col-span-full rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
-                Loading menu items...
+                {isBestSellersCategory
+                  ? "Loading best sellers..."
+                  : "Loading menu items..."}
               </div>
             )}
 
-            {foodError && (
+            {menuError && (
               <div className="col-span-full rounded-lg border border-red-200 bg-white p-8 text-center text-red-600">
-                {foodError}
+                {menuError}
               </div>
             )}
 
-            {foodLoaded &&
-              !foodLoading &&
-              !foodError &&
+            {isMenuLoaded &&
+              !isMenuLoading &&
+              !menuError &&
               filteredMenu.length === 0 && (
                 <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-                  No dishes match your current filters.
+                  {selectedCategory === "All" || isBestSellersCategory
+                    ? "No dishes match your current filters."
+                    : `No items available in ${selectedCategory} yet.`}
                 </div>
               )}
           </div>

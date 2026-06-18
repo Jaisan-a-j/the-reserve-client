@@ -10,3 +10,8 @@ export const getFoodItems = async () => {
   const response = await API.get("/");
   return response.data;
 };
+
+export const getBestSellers = async () => {
+  const response = await API.get("/best-sellers");
+  return response.data;
+};
