@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 import { getMyOrdersThunk } from "../features/order/orderThunk";
 import OrderCard from "../components/profile/OrderCard";
 import ProfileHeader from "../components/profile/ProfileHeader";
+import ProfileAddressSection from "../components/profile/ProfileAddressSection";
 import { Package } from "lucide-react";
 
 const ProfilePage = () => {
@@ -29,6 +30,7 @@ const ProfilePage = () => {
     <main className="min-h-screen bg-[#fbfbfd] px-4 pb-12 pt-24 text-[#111111] sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl">
         <ProfileHeader user={user} />
+        <ProfileAddressSection user={user} />
 
         <section id="orders" className="mt-8">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3 px-2">
