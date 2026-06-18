@@ -3,8 +3,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type Dispatch,
-  type SetStateAction,
 } from "react";
 import {
   ArrowRight,
@@ -17,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
-import { getFoodItemsThunk } from "../features/food/foodThunk";
 import {
   getCartItemsThunk,
   removeCartItemThunk,
@@ -33,6 +30,7 @@ import {
   useNewArrivals,
   useTrending,
 } from "../hooks/useFoodCategories";
+import { useFoodItems, useFoodPriceRange } from "../hooks/useFoodItems";
 
 type FilterSectionProps = {
   title: string;
@@ -54,6 +52,22 @@ const CHEFS_SPECIALS_CATEGORY = "Chef's Specials";
 const NEW_ARRIVALS_CATEGORY = "New Arrivals";
 const TRENDING_CATEGORY = "Trending";
 const ITEMS_PER_PAGE = 9;
+
+type MenuFilters = {
+  minPrice: number;
+  maxPrice: number;
+  cuisines: string[];
+  dietary: string[];
+  spice: string[];
+};
+
+const createDefaultFilters = (maxPrice: number): MenuFilters => ({
+  minPrice: 0,
+  maxPrice,
+  cuisines: [],
+  dietary: [],
+  spice: [],
+});
 
 const categoryLoadingMessages: Record<string, string> = {
   [BEST_SELLERS_CATEGORY]: "Loading best sellers...",
@@ -80,12 +94,6 @@ const BuyOnlinePage = () => {
     {},
   );
   const {
-    items: menuItems,
-    loading: foodLoading,
-    loaded: foodLoaded,
-    error: foodError,
-  } = useAppSelector((state) => state.food);
-  const {
     items: cartItems,
     loading: cartLoading,
     error: cartError,
@@ -98,14 +106,20 @@ const BuyOnlinePage = () => {
   const [deletingItemIds, setDeletingItemIds] = useState<
     Record<string, boolean>
   >({});
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
-  const [selectedDietary, setSelectedDietary] = useState<string[]>([]);
-  const [selectedSpice, setSelectedSpice] = useState<string[]>([]);
+  const [appliedFilters, setAppliedFilters] = useState<MenuFilters>(() =>
+    createDefaultFilters(100),
+  );
+  const [draftFilters, setDraftFilters] = useState<MenuFilters>(() =>
+    createDefaultFilters(100),
+  );
+
+  
+  const [draftMinPriceInput, setDraftMinPriceInput] = useState("0");
+  const [draftMaxPriceInput, setDraftMaxPriceInput] = useState("100");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [alertLogin, setAlertLogin] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const isAllCategory = selectedCategory === "All";
   const isBestSellersCategory = selectedCategory === BEST_SELLERS_CATEGORY;
   const isChefsSpecialsCategory = selectedCategory === CHEFS_SPECIALS_CATEGORY;
   const isNewArrivalsCategory = selectedCategory === NEW_ARRIVALS_CATEGORY;
@@ -140,21 +154,48 @@ const BuyOnlinePage = () => {
     error: trendingErrorDetails,
   } = useTrending(isTrendingCategory);
 
+  const { data: priceRangeData } = useFoodPriceRange();
+  const menuMaxPrice = priceRangeData?.maxPrice ?? 100;
+
+  const hasInitializedPriceRange = useRef(false);
+
   useEffect(() => {
-    dispatch(getFoodItemsThunk());
-  }, [dispatch]);
+    if (!priceRangeData || hasInitializedPriceRange.current) return;
+
+    hasInitializedPriceRange.current = true;
+    const defaultFilters = createDefaultFilters(priceRangeData.maxPrice);
+    setAppliedFilters(defaultFilters);
+    setDraftFilters(defaultFilters);
+    setDraftMinPriceInput(String(defaultFilters.minPrice));
+    setDraftMaxPriceInput(String(defaultFilters.maxPrice));
+  }, [priceRangeData]);
+
+  const foodFilters = useMemo(
+    () => ({
+      minPrice: appliedFilters.minPrice,
+      maxPrice: appliedFilters.maxPrice,
+      cuisines: appliedFilters.cuisines,
+      dietary: appliedFilters.dietary,
+      spice: appliedFilters.spice,
+    }),
+    [appliedFilters],
+  );
+
+  const requestedPage = Number(searchParams.get("page") ?? 1);
+  const currentPage = Math.max(Number.isNaN(requestedPage) ? 1 : requestedPage, 1);
+
+  const {
+    data: foodItemsData,
+    isLoading: foodItemsLoading,
+    isError: foodItemsError,
+    error: foodItemsErrorDetails,
+  } = useFoodItems(currentPage, foodFilters, isAllCategory, ITEMS_PER_PAGE);
 
   useEffect(() => {
     if (token) {
       dispatch(getCartItemsThunk());
     }
   }, [dispatch, token]);
-
-  const menuMaxPrice = useMemo(() => {
-    if (menuItems.length === 0) return 100;
-    return Math.max(...menuItems.map((item) => item.price), 100);
-  }, [menuItems]);
-  const activeMaxPrice = maxPrice ?? menuMaxPrice;
 
   useEffect(() => {
     const timers = cartSyncTimers.current;
@@ -165,15 +206,14 @@ const BuyOnlinePage = () => {
   }, []);
 
   const categoryMenuItems = useMemo(() => {
-    if (selectedCategory === "All") return menuItems;
+    if (isAllCategory) return [];
     if (isBestSellersCategory) return bestSellers;
     if (isChefsSpecialsCategory) return chefSpecials;
     if (isNewArrivalsCategory) return newArrivals;
     if (isTrendingCategory) return trending;
     return [];
   }, [
-    selectedCategory,
-    menuItems,
+    isAllCategory,
     isBestSellersCategory,
     bestSellers,
     isChefsSpecialsCategory,
@@ -184,83 +224,79 @@ const BuyOnlinePage = () => {
     trending,
   ]);
 
-  const filteredMenu = useMemo(() => {
+  const filteredCategoryMenu = useMemo(() => {
     return categoryMenuItems.filter((item) => {
       const matchesPrice =
-        item.price >= minPrice && item.price <= activeMaxPrice;
+        item.price >= appliedFilters.minPrice &&
+        item.price <= appliedFilters.maxPrice;
       const matchesCuisine =
-        selectedCuisines.length === 0 ||
-        selectedCuisines.includes(item.category);
+        appliedFilters.cuisines.length === 0 ||
+        appliedFilters.cuisines.includes(item.category);
       const matchesDietary =
-        selectedDietary.length === 0 ||
-        selectedDietary.every((diet) => item.dietary.includes(diet));
+        appliedFilters.dietary.length === 0 ||
+        appliedFilters.dietary.every((diet) => item.dietary.includes(diet));
       const matchesSpice =
-        selectedSpice.length === 0 || selectedSpice.includes(item.spice);
+        appliedFilters.spice.length === 0 ||
+        appliedFilters.spice.includes(item.spice);
 
       return matchesPrice && matchesCuisine && matchesDietary && matchesSpice;
     });
-  }, [
-    categoryMenuItems,
-    minPrice,
-    activeMaxPrice,
-    selectedCuisines,
-    selectedDietary,
-    selectedSpice,
-  ]);
+  }, [categoryMenuItems, appliedFilters]);
 
-  const isMenuLoading =
-    selectedCategory === "All"
-      ? foodLoading
-      : isBestSellersCategory
-        ? bestSellersLoading
-        : isChefsSpecialsCategory
-          ? chefSpecialsLoading
-          : isNewArrivalsCategory
-            ? newArrivalsLoading
-            : isTrendingCategory
-              ? trendingLoading
-              : false;
+  const totalPages = isAllCategory
+    ? (foodItemsData?.pagination.totalPages ?? 1)
+    : Math.max(1, Math.ceil(filteredCategoryMenu.length / ITEMS_PER_PAGE));
 
-  const menuError =
-    selectedCategory === "All"
-      ? foodError
-      : isBestSellersCategory && bestSellersError
-        ? (bestSellersErrorDetails?.message ?? "Unable to load best sellers.")
-        : isChefsSpecialsCategory && chefSpecialsError
-          ? (chefSpecialsErrorDetails?.message ??
-            "Unable to load chef's specials.")
-          : isNewArrivalsCategory && newArrivalsError
-            ? (newArrivalsErrorDetails?.message ??
-              "Unable to load new arrivals.")
-            : isTrendingCategory && trendingError
-              ? (trendingErrorDetails?.message ?? "Unable to load trending items.")
-              : null;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  const isMenuLoaded =
-    selectedCategory === "All"
-      ? foodLoaded
-      : isCategoryQuery
-        ? !isMenuLoading && !menuError
-        : true;
+  const paginatedMenu = isAllCategory
+    ? (foodItemsData?.data ?? [])
+    : filteredCategoryMenu.slice(
+        (safeCurrentPage - 1) * ITEMS_PER_PAGE,
+        safeCurrentPage * ITEMS_PER_PAGE,
+      );
+
+  const isMenuLoading = isAllCategory
+    ? foodItemsLoading
+    : isBestSellersCategory
+      ? bestSellersLoading
+      : isChefsSpecialsCategory
+        ? chefSpecialsLoading
+        : isNewArrivalsCategory
+          ? newArrivalsLoading
+          : isTrendingCategory
+            ? trendingLoading
+            : false;
+
+  const menuError = isAllCategory
+    ? foodItemsError
+      ? (foodItemsErrorDetails?.message ?? "Unable to load menu items.")
+      : null
+    : isBestSellersCategory && bestSellersError
+      ? (bestSellersErrorDetails?.message ?? "Unable to load best sellers.")
+      : isChefsSpecialsCategory && chefSpecialsError
+        ? (chefSpecialsErrorDetails?.message ??
+          "Unable to load chef's specials.")
+        : isNewArrivalsCategory && newArrivalsError
+          ? (newArrivalsErrorDetails?.message ?? "Unable to load new arrivals.")
+          : isTrendingCategory && trendingError
+            ? (trendingErrorDetails?.message ?? "Unable to load trending items.")
+            : null;
+
+  const isMenuLoaded = isAllCategory
+    ? !foodItemsLoading && !foodItemsError
+    : isCategoryQuery
+      ? !isMenuLoading && !menuError
+      : true;
+
+  const hasNoResults = isAllCategory
+    ? (foodItemsData?.pagination.total ?? 0) === 0
+    : filteredCategoryMenu.length === 0;
 
   const categoryLoadingMessage =
     selectedCategory === "All"
       ? "Loading menu items..."
       : (categoryLoadingMessages[selectedCategory] ?? "Loading menu items...");
-
-  const requestedPage = Number(searchParams.get("page") ?? 1);
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredMenu.length / ITEMS_PER_PAGE),
-  );
-  const currentPage = Math.min(
-    Math.max(Number.isNaN(requestedPage) ? 1 : requestedPage, 1),
-    totalPages,
-  );
-  const paginatedMenu = filteredMenu.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
 
   const updatePage = (page: number) => {
     const nextPage = Math.min(Math.max(page, 1), totalPages);
@@ -280,6 +316,22 @@ const BuyOnlinePage = () => {
     nextParams.delete("page");
     setSearchParams(nextParams);
   };
+
+  useEffect(() => {
+    if (!isAllCategory || !foodItemsData) return;
+    if (currentPage <= foodItemsData.pagination.totalPages) return;
+
+    const nextParams = new URLSearchParams(searchParams);
+    const nextPage = foodItemsData.pagination.totalPages;
+
+    if (nextPage === 1) {
+      nextParams.delete("page");
+    } else {
+      nextParams.set("page", String(nextPage));
+    }
+
+    setSearchParams(nextParams);
+  }, [isAllCategory, foodItemsData, currentPage, searchParams, setSearchParams]);
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.food.price * item.quantity,
@@ -325,17 +377,57 @@ const BuyOnlinePage = () => {
     });
   };
 
-  const toggleFilter = (
+  const normalizePriceFilters = (filters: MenuFilters): MenuFilters => {
+    const minPrice = Math.max(0, Math.min(filters.minPrice, menuMaxPrice));
+    const maxPrice = Math.max(minPrice, Math.min(filters.maxPrice, menuMaxPrice));
+
+    return {
+      ...filters,
+      minPrice,
+      maxPrice,
+    };
+  };
+
+  const toggleDraftFilter = (
     value: string,
-    setState: Dispatch<SetStateAction<string[]>>,
-    state: string[],
+    key: "cuisines" | "dietary" | "spice",
   ) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      [key]: prev[key].includes(value)
+        ? prev[key].filter((item) => item !== value)
+        : [...prev[key], value],
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    const parsedMinPrice =
+      draftMinPriceInput.trim() === "" ? 0 : Number(draftMinPriceInput);
+    const parsedMaxPrice =
+      draftMaxPriceInput.trim() === "" ? menuMaxPrice : Number(draftMaxPriceInput);
+
+    const normalizedFilters = normalizePriceFilters({
+      ...draftFilters,
+      minPrice: Number.isNaN(parsedMinPrice) ? 0 : parsedMinPrice,
+      maxPrice: Number.isNaN(parsedMaxPrice) ? menuMaxPrice : parsedMaxPrice,
+    });    
+
+    setDraftFilters(normalizedFilters);
+    setAppliedFilters(normalizedFilters);
+    setDraftMinPriceInput(String(normalizedFilters.minPrice));
+    setDraftMaxPriceInput(String(normalizedFilters.maxPrice));
     resetPage();
-    setState(
-      state.includes(value)
-        ? state.filter((item) => item !== value)
-        : [...state, value],
-    );
+    setIsFilterOpen(false);
+  };
+
+  const handleClearFilters = () => {
+    const defaultFilters = createDefaultFilters(menuMaxPrice);
+    setDraftFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
+    setDraftMinPriceInput(String(defaultFilters.minPrice));
+    setDraftMaxPriceInput(String(defaultFilters.maxPrice));
+    resetPage();
+    setIsFilterOpen(false);
   };
 
   const addToCart = (item: FoodItem) => {
@@ -370,59 +462,45 @@ const BuyOnlinePage = () => {
     );
   };
 
-  const minPricePercent = (minPrice / menuMaxPrice) * 100;
-  const maxPricePercent = (activeMaxPrice / menuMaxPrice) * 100;
-
-  const filterPanel = (
+  const filterContent = (
     <>
-      <h1 className="mb-5 text-2xl font-bold tracking-tight">
+      <h1 className="mb-5 text-2xl font-bold tracking-tight xl:block">
         Filter Your Taste
       </h1>
 
       <FilterSection title="Price Range">
-        <div className="relative h-8">
-          <div className="absolute left-0 right-0 top-3 h-1 rounded-full bg-gray-200" />
-          <div
-            className="absolute top-3 h-1 rounded-full bg-[#7248ff]"
-            style={{
-              left: `${minPricePercent}%`,
-              right: `${100 - maxPricePercent}%`,
-            }}
-          />
-          <input
-            aria-label="Minimum price"
-            type="range"
-            min={0}
-            max={menuMaxPrice}
-            value={minPrice}
-            onChange={(event) => {
-              const value = Math.min(
-                Number(event.target.value),
-                activeMaxPrice,
-              );
-              resetPage();
-              setMinPrice(value);
-            }}
-            className="pointer-events-none absolute top-0 h-8 w-full appearance-none bg-transparent accent-[#7248ff] [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
-          />
-          <input
-            aria-label="Maximum price"
-            type="range"
-            min={0}
-            max={menuMaxPrice}
-            value={activeMaxPrice}
-            onChange={(event) => {
-              const value = Math.max(Number(event.target.value), minPrice);
-              resetPage();
-              setMaxPrice(value);
-            }}
-            className="pointer-events-none absolute top-0 h-8 w-full appearance-none bg-transparent accent-[#7248ff] [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
-          />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">
+              Min Price ($)
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={draftMinPriceInput}
+              onChange={(event) => setDraftMinPriceInput(event.target.value)}
+              className="h-11 w-full rounded-md border border-gray-200 px-3 text-base text-[#111111] outline-none transition-colors focus:border-[#633df1] focus:ring-2 focus:ring-[#633df1]/20"
+              aria-label="Minimum price"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">
+              Max Price ($)
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={draftMaxPriceInput}
+              onChange={(event) => setDraftMaxPriceInput(event.target.value)}
+              className="h-11 w-full rounded-md border border-gray-200 px-3 text-base text-[#111111] outline-none transition-colors focus:border-[#633df1] focus:ring-2 focus:ring-[#633df1]/20"
+              aria-label="Maximum price"
+            />
+          </label>
         </div>
-        <div className="mt-3 flex items-center justify-between text-base font-normal">
-          <span>{formatCurrency(minPrice).replace(".00", "")}</span>
-          <span>{formatCurrency(activeMaxPrice).replace(".00", "")}</span>
-        </div>
+        <p className="mt-3 text-sm text-gray-500">
+          Available range: {formatCurrency(0).replace(".00", "")} –{" "}
+          {formatCurrency(menuMaxPrice).replace(".00", "")}
+        </p>
       </FilterSection>
 
       <FilterSection title="Cuisine Type">
@@ -434,10 +512,8 @@ const BuyOnlinePage = () => {
             >
               <input
                 type="checkbox"
-                checked={selectedCuisines.includes(cuisine)}
-                onChange={() =>
-                  toggleFilter(cuisine, setSelectedCuisines, selectedCuisines)
-                }
+                checked={draftFilters.cuisines.includes(cuisine)}
+                onChange={() => toggleDraftFilter(cuisine, "cuisines")}
                 className="h-4 w-4 rounded border-gray-300 accent-[#7248ff]"
               />
               {cuisine}
@@ -455,10 +531,8 @@ const BuyOnlinePage = () => {
             >
               <input
                 type="checkbox"
-                checked={selectedDietary.includes(diet)}
-                onChange={() =>
-                  toggleFilter(diet, setSelectedDietary, selectedDietary)
-                }
+                checked={draftFilters.dietary.includes(diet)}
+                onChange={() => toggleDraftFilter(diet, "dietary")}
                 className="h-4 w-4 rounded border-gray-300 accent-[#7248ff]"
               />
               {diet}
@@ -476,10 +550,8 @@ const BuyOnlinePage = () => {
             >
               <input
                 type="checkbox"
-                checked={selectedSpice.includes(spice)}
-                onChange={() =>
-                  toggleFilter(spice, setSelectedSpice, selectedSpice)
-                }
+                checked={draftFilters.spice.includes(spice)}
+                onChange={() => toggleDraftFilter(spice, "spice")}
                 className="h-4 w-4 rounded border-gray-300 accent-[#7248ff]"
               />
               {spice}
@@ -487,6 +559,32 @@ const BuyOnlinePage = () => {
           ))}
         </div>
       </FilterSection>
+    </>
+  );
+
+  const filterActions = (
+    <div className="flex w-full flex-col gap-4 xl:flex-row xl:gap-3">
+      <button
+        type="button"
+        onClick={handleApplyFilters}
+        className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#633df1] px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-[#5330dc] xl:h-11 xl:flex-1 xl:rounded-md xl:px-4 xl:text-sm"
+      >
+        Apply Filters
+      </button>
+      <button
+        type="button"
+        onClick={handleClearFilters}
+        className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-6 text-base font-semibold text-[#111111] transition-colors hover:border-[#825cff] xl:h-11 xl:flex-1 xl:rounded-md xl:px-4 xl:text-sm"
+      >
+        Clear Filters
+      </button>
+    </div>
+  );
+
+  const filterPanel = (
+    <>
+      {filterContent}
+      <div className="mt-6 border-t border-gray-200 pt-5">{filterActions}</div>
     </>
   );
 
@@ -502,22 +600,25 @@ const BuyOnlinePage = () => {
       />
 
       <aside
-        className={`fixed bottom-0 left-0 top-16 z-60 w-full max-w-sm overflow-y-auto border-r border-gray-200 bg-white p-6 shadow-2xl transition-transform duration-300 xl:hidden ${
+        className={`fixed bottom-0 left-0 top-16 z-60 flex w-full max-w-sm flex-col border-r border-gray-200 bg-white shadow-2xl transition-transform duration-300 xl:hidden ${
           isFilterOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="mb-5 flex items-center justify-between">
-          <span className="sr-only">Filter drawer</span>
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-[#111111]">Filters</h2>
           <button
             type="button"
             onClick={() => setIsFilterOpen(false)}
             aria-label="Close filters"
-            className="ml-auto grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff]"
+            className="grid h-10 w-10 place-items-center rounded-md border border-gray-200 text-[#111111] transition-colors hover:border-[#825cff]"
           >
             <X size={20} strokeWidth={2.4} />
           </button>
         </div>
-        {filterPanel}
+        <div className="flex-1 overflow-y-auto px-6 py-5">{filterContent}</div>
+        <div className="border-t border-gray-200 bg-white px-4 py-5 pb-6">
+          {filterActions}
+        </div>
       </aside>
 
       <div className="mx-auto grid w-full max-w-[1760px] grid-cols-1 gap-8 xl:grid-cols-[350px_minmax(0,1fr)_395px]">
@@ -627,7 +728,7 @@ const BuyOnlinePage = () => {
             {isMenuLoaded &&
               !isMenuLoading &&
               !menuError &&
-              filteredMenu.length === 0 && (
+              hasNoResults && (
                 <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
                   {selectedCategory === "All" || isCategoryQuery
                     ? "No dishes match your current filters."
@@ -636,12 +737,12 @@ const BuyOnlinePage = () => {
               )}
           </div>
 
-          {filteredMenu.length > ITEMS_PER_PAGE && (
+          {totalPages > 1 && (
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
               <button
                 type="button"
-                onClick={() => updatePage(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => updatePage(safeCurrentPage - 1)}
+                disabled={safeCurrentPage === 1}
                 className="h-10 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition-colors hover:border-[#825cff] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Previous
@@ -653,9 +754,9 @@ const BuyOnlinePage = () => {
                     type="button"
                     key={page}
                     onClick={() => updatePage(page)}
-                    aria-current={page === currentPage ? "page" : undefined}
+                    aria-current={page === safeCurrentPage ? "page" : undefined}
                     className={`grid h-10 w-10 place-items-center rounded-md border text-sm font-semibold transition-colors ${
-                      page === currentPage
+                      page === safeCurrentPage
                         ? "border-[#633df1] bg-[#633df1] text-white"
                         : "border-gray-200 bg-white text-[#111111] hover:border-[#825cff]"
                     }`}
@@ -667,8 +768,8 @@ const BuyOnlinePage = () => {
 
               <button
                 type="button"
-                onClick={() => updatePage(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => updatePage(safeCurrentPage + 1)}
+                disabled={safeCurrentPage === totalPages}
                 className="h-10 rounded-md border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition-colors hover:border-[#825cff] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next

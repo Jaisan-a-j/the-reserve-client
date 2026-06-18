@@ -35,8 +35,6 @@ const MainLayout = () => {
 
   const showChatWidget =
     pathname === "/" ||
-    pathname === "/buy-online" ||
-    pathname.startsWith("/buy-online/") ||
     pathname === "/profile";
 
   return (
