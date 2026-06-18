@@ -15,3 +15,18 @@ export const getBestSellers = async () => {
   const response = await API.get("/best-sellers");
   return response.data;
 };
+
+export const getChefSpecials = async () => {
+  const response = await API.get("/chef-specials");
+  return response.data;
+};
+
+export const getNewArrivals = async () => {
+  const response = await API.get("/new-arrivals");
+  return response.data;
+};
+
+export const getTrending = async () => {
+  const response = await API.get("/trending");
+  return response.data;
+};

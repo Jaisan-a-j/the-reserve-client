@@ -57,6 +57,7 @@ export interface FoodItem {
   dietary: string[];
   spice: string;
   image: string;
+  chefSpecial?: boolean;
 }
 
 export interface CartItem {

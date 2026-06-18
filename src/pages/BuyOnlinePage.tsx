@@ -27,7 +27,12 @@ import type { FoodItem } from "../types";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Alert from "../components/common/Alert";
 import { formatCurrency } from "../utils/formatCurrency";
-import { useBestSellers } from "../hooks/useBestSellers";
+import {
+  useBestSellers,
+  useChefSpecials,
+  useNewArrivals,
+  useTrending,
+} from "../hooks/useFoodCategories";
 
 type FilterSectionProps = {
   title: string;
@@ -45,7 +50,17 @@ const dietaryOptions = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
 const spiceOptions = ["Mild", "Medium", "Hot"];
 const menuCategories = ["All", "Best Sellers🔥", "Chef's Specials", "New Arrivals", "Trending"];
 const BEST_SELLERS_CATEGORY = "Best Sellers🔥";
+const CHEFS_SPECIALS_CATEGORY = "Chef's Specials";
+const NEW_ARRIVALS_CATEGORY = "New Arrivals";
+const TRENDING_CATEGORY = "Trending";
 const ITEMS_PER_PAGE = 9;
+
+const categoryLoadingMessages: Record<string, string> = {
+  [BEST_SELLERS_CATEGORY]: "Loading best sellers...",
+  [CHEFS_SPECIALS_CATEGORY]: "Loading chef's specials...",
+  [NEW_ARRIVALS_CATEGORY]: "Loading new arrivals...",
+  [TRENDING_CATEGORY]: "Loading trending items...",
+};
 
 const FilterSection = ({ title, children }: FilterSectionProps) => (
   <div className="border-t border-gray-200 py-5 first:border-t-0 first:pt-0">
@@ -92,12 +107,38 @@ const BuyOnlinePage = () => {
   const [alertLogin, setAlertLogin] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const isBestSellersCategory = selectedCategory === BEST_SELLERS_CATEGORY;
+  const isChefsSpecialsCategory = selectedCategory === CHEFS_SPECIALS_CATEGORY;
+  const isNewArrivalsCategory = selectedCategory === NEW_ARRIVALS_CATEGORY;
+  const isTrendingCategory = selectedCategory === TRENDING_CATEGORY;
+  const isCategoryQuery =
+    isBestSellersCategory ||
+    isChefsSpecialsCategory ||
+    isNewArrivalsCategory ||
+    isTrendingCategory;
   const {
     data: bestSellers = [],
     isLoading: bestSellersLoading,
     isError: bestSellersError,
     error: bestSellersErrorDetails,
   } = useBestSellers(isBestSellersCategory);
+  const {
+    data: chefSpecials = [],
+    isLoading: chefSpecialsLoading,
+    isError: chefSpecialsError,
+    error: chefSpecialsErrorDetails,
+  } = useChefSpecials(isChefsSpecialsCategory);
+  const {
+    data: newArrivals = [],
+    isLoading: newArrivalsLoading,
+    isError: newArrivalsError,
+    error: newArrivalsErrorDetails,
+  } = useNewArrivals(isNewArrivalsCategory);
+  const {
+    data: trending = [],
+    isLoading: trendingLoading,
+    isError: trendingError,
+    error: trendingErrorDetails,
+  } = useTrending(isTrendingCategory);
 
   useEffect(() => {
     dispatch(getFoodItemsThunk());
@@ -126,8 +167,22 @@ const BuyOnlinePage = () => {
   const categoryMenuItems = useMemo(() => {
     if (selectedCategory === "All") return menuItems;
     if (isBestSellersCategory) return bestSellers;
+    if (isChefsSpecialsCategory) return chefSpecials;
+    if (isNewArrivalsCategory) return newArrivals;
+    if (isTrendingCategory) return trending;
     return [];
-  }, [selectedCategory, menuItems, isBestSellersCategory, bestSellers]);
+  }, [
+    selectedCategory,
+    menuItems,
+    isBestSellersCategory,
+    bestSellers,
+    isChefsSpecialsCategory,
+    chefSpecials,
+    isNewArrivalsCategory,
+    newArrivals,
+    isTrendingCategory,
+    trending,
+  ]);
 
   const filteredMenu = useMemo(() => {
     return categoryMenuItems.filter((item) => {
@@ -158,21 +213,40 @@ const BuyOnlinePage = () => {
       ? foodLoading
       : isBestSellersCategory
         ? bestSellersLoading
-        : false;
+        : isChefsSpecialsCategory
+          ? chefSpecialsLoading
+          : isNewArrivalsCategory
+            ? newArrivalsLoading
+            : isTrendingCategory
+              ? trendingLoading
+              : false;
 
   const menuError =
     selectedCategory === "All"
       ? foodError
       : isBestSellersCategory && bestSellersError
         ? (bestSellersErrorDetails?.message ?? "Unable to load best sellers.")
-        : null;
+        : isChefsSpecialsCategory && chefSpecialsError
+          ? (chefSpecialsErrorDetails?.message ??
+            "Unable to load chef's specials.")
+          : isNewArrivalsCategory && newArrivalsError
+            ? (newArrivalsErrorDetails?.message ??
+              "Unable to load new arrivals.")
+            : isTrendingCategory && trendingError
+              ? (trendingErrorDetails?.message ?? "Unable to load trending items.")
+              : null;
 
   const isMenuLoaded =
     selectedCategory === "All"
       ? foodLoaded
-      : isBestSellersCategory
-        ? !bestSellersLoading && !bestSellersError
+      : isCategoryQuery
+        ? !isMenuLoading && !menuError
         : true;
+
+  const categoryLoadingMessage =
+    selectedCategory === "All"
+      ? "Loading menu items..."
+      : (categoryLoadingMessages[selectedCategory] ?? "Loading menu items...");
 
   const requestedPage = Number(searchParams.get("page") ?? 1);
   const totalPages = Math.max(
@@ -540,9 +614,7 @@ const BuyOnlinePage = () => {
 
             {isMenuLoading && (
               <div className="col-span-full rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
-                {isBestSellersCategory
-                  ? "Loading best sellers..."
-                  : "Loading menu items..."}
+                {categoryLoadingMessage}
               </div>
             )}
 
@@ -557,7 +629,7 @@ const BuyOnlinePage = () => {
               !menuError &&
               filteredMenu.length === 0 && (
                 <div className="col-span-full rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
-                  {selectedCategory === "All" || isBestSellersCategory
+                  {selectedCategory === "All" || isCategoryQuery
                     ? "No dishes match your current filters."
                     : `No items available in ${selectedCategory} yet.`}
                 </div>
